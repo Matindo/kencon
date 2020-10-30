@@ -12,7 +12,7 @@
                   <b-tabs card content-class="mt-3" justified>
                     <b-tab v-for="(sub, index2) in item.subcat" :key="index2" :title="sub.subcategory" align-h="left">
                       <b-row align-h="left"><b-col v-for="(spec, index3) in sub.list" :key="index3">
-                        <b-card :img-src="getImage(spec.img)" :img-alt="spec.name" text-variant="black" style="max-width: 8rem; max-height: 8rem; margin-bottom: 10px;" img-left>
+                        <b-card :img-src="`./assets/${spec.img}.jpg`" :img-alt="spec.name" text-variant="black" style="max-width: 8rem; max-height: 8rem; margin-bottom: 10px;" img-left>
                           <b-card-text> {{ spec.name }} </b-card-text>
                           <b-button block variant="info" v-b-toggle="'collapse-info' + index3" @click="currentIndex.splice(0, currentIndex.length); currentIndex.push(index1, index2, index3); setCurrentItem()">Buy Item</b-button>
                         </b-card>
@@ -21,7 +21,7 @@
                         <b-col>                                                      <b-collapse :id="'collapse-info' + runningIndex">
                             <b-row>
                               <b-col class="w-50">
-                                <img :src="getImage(currentItem.img)" style="height: 8rem; width: 8rem">
+                                <b-img :src="require(`./assets/${currentItem.img}.jpeg`)" ></b-img>
                               </b-col>
                               <b-col class="w-50">
                                 <p>In Stock: 100</p>
