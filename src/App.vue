@@ -9,31 +9,32 @@
               <b-row align-v="stretch">
                 <b-col>
                   <h4>{{item.category}}</h4>
-                  <b-tabs card content-class="mt-3" justified>
-                    <b-tab v-for="(sub, index2) in item.subcat" :key="index2" :title="sub.subcategory" align-h="left">
-                      <b-row align-h="left"><b-col v-for="(spec, index3) in sub.list" :key="index3">
-                        <b-card :img-src="require(`./assets/${spec.img}.png`)" :img-alt="spec.name" text-variant="black" style="max-width: 8rem; max-height: 8rem; margin-bottom: 10px;" img-left>
-                          <b-card-text> {{ spec.name }} </b-card-text>
-                          <b-button block variant="info" v-b-toggle="'collapse-info' + index3" @click="currentIndex.splice(0, currentIndex.length); currentIndex.push(index1, index2, index3); setCurrentItem()">Buy Item</b-button>
-                        </b-card>
-                      </b-col></b-row>
+                  <b-tabs card content-class="mt-3" justified class="accordion">
+                    <b-tab v-for="(sub, index2) in item.subcat" :key="index2" :title="sub.subcategory" align-h="start" @click="visible1 = false">
+                      <b-row align-h="start" no-gutters cols-sm="2" cols-md="3" cols-lg="4">
+                        <b-col class="mb-1 mr-1" v-for="(spec, index3) in sub.list" :key="index3" v-b-toggle="'collapse-info' + index3" @click="currentIndex.splice(0, currentIndex.length); currentIndex.push(index1, index2, index3); setCurrentItem(); visible2=false">
+                          <b-card overlay :img-src="require(`./assets/${spec.img}.png`)" :img-alt="spec.name" style="margin-bottom: 10px; color: white" fluid>
+                            <b-card-text align-self="end"> {{ spec.name }} </b-card-text>
+                          </b-card>
+                        </b-col>
+                      </b-row>
                       <b-row>
                         <b-col>
-                          <b-collapse :id="'collapse-info' + runningIndex">
-                            <b-row>
+                          <b-collapse :id="'collapse-info' + runningIndex" :visible="visible1" accordion="my-accordion">
+                            <b-row v-if="currentItem">
                               <b-col class="w-50">
-                                <b-img :src="require(`./assets/${currentItem.img}.png`)"></b-img>
+                                <b-img :src="require(`./assets/${currentItem.img}.png`)" fluid></b-img>
                               </b-col>
                               <b-col class="w-50">
                                 <p>In Stock: 100</p>
                                 <p>Price: {{ currentItem.price }}</p>
                                 <b-button block variant="success" v-b-toggle.collapse-buy>Purchase</b-button>
-                                <b-collapse id="collapse-buy">
+                                <b-collapse id="collapse-buy" :visible="visible2">
                                   <b-form>
                                     <b-form-group>
                                       <label for="quantity">Units to Buy:</label><b-input id="quantity" type="number" v-model="quantity" placeholder="0"></b-input>
                                     </b-form-group>
-                                    <b-button block @click="buyItem()" variant="warning">Add To Cart</b-button>
+                                    <b-button block @click="buyItem(); visible2=false" variant="warning">Add To Cart</b-button>
                                   </b-form>
                                 </b-collapse>
                               </b-col>
@@ -118,7 +119,9 @@ export default {
       runningTotal: 0,
       currentIndex: [0, 0, 0],
       runningIndex: null,
-      currentItem: null
+      currentItem: null,
+      visible1: false,
+      visible2: false
     }
   },
   methods: {
@@ -142,4 +145,11 @@ export default {
 </script>
 
 <style scoped>
+  .spec b-col {
+    background-color: rgba(o, 0, 0, .2);
+  }
+
+  .spec b-col:hover {
+    background-color: rgba(0, 0, 0, .5);
+  }
 </style>
