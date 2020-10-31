@@ -12,20 +12,21 @@
                   <b-tabs card content-class="mt-3" justified>
                     <b-tab v-for="(sub, index2) in item.subcat" :key="index2" :title="sub.subcategory" align-h="left">
                       <b-row align-h="left"><b-col v-for="(spec, index3) in sub.list" :key="index3">
-                        <b-card :img-src="`./assets/${spec.img}.jpg`" :img-alt="spec.name" text-variant="black" style="max-width: 8rem; max-height: 8rem; margin-bottom: 10px;" img-left>
+                        <b-card :img-src="require(`./assets/${spec.img}.png`)" :img-alt="spec.name" text-variant="black" style="max-width: 8rem; max-height: 8rem; margin-bottom: 10px;" img-left>
                           <b-card-text> {{ spec.name }} </b-card-text>
                           <b-button block variant="info" v-b-toggle="'collapse-info' + index3" @click="currentIndex.splice(0, currentIndex.length); currentIndex.push(index1, index2, index3); setCurrentItem()">Buy Item</b-button>
                         </b-card>
                       </b-col></b-row>
                       <b-row>
-                        <b-col>                                                      <b-collapse :id="'collapse-info' + runningIndex">
+                        <b-col>
+                          <b-collapse :id="'collapse-info' + runningIndex">
                             <b-row>
                               <b-col class="w-50">
-                                <b-img :src="require(`./assets/${currentItem.img}.jpeg`)" ></b-img>
+                                <b-img :src="require(`./assets/${currentItem.img}.png`)"></b-img>
                               </b-col>
                               <b-col class="w-50">
                                 <p>In Stock: 100</p>
-                                <p>Price: 500</p>
+                                <p>Price: {{ currentItem.price }}</p>
                                 <b-button block variant="success" v-b-toggle.collapse-buy>Purchase</b-button>
                                 <b-collapse id="collapse-buy">
                                   <b-form>
@@ -45,11 +46,6 @@
                 </b-col>
               </b-row>
             </b-tab>
-            <p>RunningIndex: {{runningIndex}}</p>
-            <p>CurrentItem: {{currentItem}}</p>
-            <p>CurrentIndex: {{currentIndex}}</p>
-            <p>Quantity: {{quantity}}</p>
-            <p>Cart: {{cart}}</p>
           </b-tabs>
         </b-card>
       </b-col>
