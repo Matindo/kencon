@@ -2,8 +2,8 @@
   <b-container fluid>
     <b-row align-v="stretch">
       <b-col class="w-100">
-        <b-tabs>
-          <b-tab :title="Stock">
+        <b-tabs justified>
+          <b-tab title="Stock">
             <b-card no-body>
               <b-tabs vertical card pills>
                 <b-tab v-for="(cat, index) in stock" :key="index" :title="cat.category">
@@ -15,7 +15,7 @@
                             <b-card-header header-tag="header" class="p-1" role="tab">
                               <b-row class="w-100">
                                 <b-col class="w-40">
-                                  <img :src="item.img" style="height: 8rem; width: 8rem;">
+                                  <img :src="require(`../assets/${item.img}.png`)" style="height: 8rem; width: 8rem;">
                                 </b-col>
                                 <b-col class="w-60 accordion" id="accordion2">
                                   <h4>{{ item.name }}</h4>
@@ -54,21 +54,21 @@
               </b-tabs>
             </b-card>
           </b-tab>
-          <b-tab :title="Sales">
+          <b-tab title="Sales">
             <b-card no-body>
               <b-tabs pills vertical card>
-                <b-tab v-for="(office, index) in staff" :key="index" :title="office.name">
+                <b-tab v-for="(office, index) in staff" :key="index" :title="office.office">
                   <b-card-text>
                     <h3>{{ office.name }}</h3>
                     <div class="accordion" id="mainAccordion">
-                      <b-card v-for="salesperson in office.list" :key="salesperson.idNo">
+                      <b-card v-for="salesperson in office.employees" :key="salesperson.idNo">
                         <b-card-header header-class="header">
                           <b-row>
                             <b-col class="w-40">
-                              <img :src="salesperson.img" style="height: 8rem; width: 8rem;">
+                              <img :src="require(`../assets/avatars/${salesperson.img}.png`)" style="height: 8rem; width: 8rem;">
                             </b-col>
                             <b-col class="w-60">
-                              <h4>{{ salesperson.name }}</h4>
+                              <h4>{{ salesperson.fullName }}</h4>
                               <p>ID:{{ salesperson.idNo }}</p>
                               <p>Work Status: {{ salesperson.status }}</p>
                               <b-button block v-b-toggle.collapse-sp variant="success">Edit Details</b-button>
@@ -103,4 +103,62 @@
 </template>
 
 <script>
+export default {
+  data: function () {
+    return {
+      staff: [
+        {
+          office: 'Main',
+          employees: [
+            {
+              idNo: '12345671', fullName: 'Cashier One', fname: 'Cashier', oname: 'One', phone: '254712345678', num: '001', img: 'avatar_1', status: 'On Duty'
+            },
+            {
+              idNo: '19845671', fullName: 'Cashier Two', fname: 'Cashier', oname: 'Two', phone: '254798765432', num: '002', img: 'avatar_2', status: 'On Duty'
+            }
+          ]
+        },
+        {
+          office: 'Thika',
+          employees: [
+            {
+              idNo: '19823745', fullName: 'Cashier Three', fname: 'Cashier', oname: 'Three', phone: '254776123984', num: '003', img: 'avatar_3', status: 'On Vacation'
+            },
+            {
+              idNo: '32456123', fullName: 'Cashier Four', fname: 'Cashier', oname: 'Four', phone: '254777542365', num: '004', img: 'avatar_4', status: 'On Duty'
+            }
+          ]
+        }
+      ],
+      stock: [
+        {
+          category: 'Gutters',
+          subcat: [{ subcategory: 'Plastic', list: [{ name: 'Red Gutter', img: 'redplasticgutter', price: 3000, quantity: 100 }, { name: 'Green Gutter', img: 'greenplasticgutter', price: 3000, quantity: 70 }] }, { subcategory: 'Metallic', list: [{ name: 'Silver Gutter', img: 'silvermetalgutter', price: 1800, quantity: 50 }, { name: 'Black Gutter', img: 'blackmetalgutter', price: 1600, quantity: 65 }] }]
+        }, {
+          category: 'Decra',
+          subcat: [{ subcategory: 'Shingles', list: [{ name: 'Black Shingles', img: 'blackshingles', price: 500, quantity: 80 }, { name: 'Green Shingles', img: 'greenshingles', price: 500, quantity: 55 }, { name: 'Coffee Shingles', img: 'coffeeshingles', price: 500, quantity: 77 }] },
+            {
+              subcategory: 'Classic',
+              list: [
+                { name: 'Black Decra', img: 'blackclassicdecra', price: 600, quantity: 50 },
+                { name: 'Green Decra', img: 'greenclassicdecra', price: 600, quantity: 90 },
+                { name: 'Red Decra', img: 'redclassicdecra', price: 600, quantity: 88 }]
+            }]
+        },
+        {
+          category: 'Curtain Rods',
+          subcat: [{
+            subcategory: '2mm',
+            list: [{ name: 'Red 2mm Rod', img: 'red2mmrods', price: 250, quantity: 250 }, {
+              name: 'Grey 2mm Rod',
+              img: 'grey2mmrods',
+              price: 250,
+              quantity: 300
+            }]
+          }, { subcategory: '3mm', list: [{ name: 'Red 3mm Rod', img: 'red3mmrods', price: 300, quantity: 550 }, { name: 'Grey 3mm Rod', img: 'grey3mmrods', price: 300, quantity: 300 }] }]
+        }
+      ]
+    }
+  }
+}
 </script>

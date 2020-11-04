@@ -27,7 +27,7 @@
                                 <b-img :src="require(`../assets/${currentItem.img}.png`)" fluid></b-img>
                               </b-col>
                               <b-col class="w-50">
-                                <p>In Stock: 100</p>
+                                <p>In Stock: {{currentItem.quantity}}</p>
                                 <p>Price: {{ currentItem.price }}</p>
                                 <b-button block variant="success" v-b-toggle.collapse-buy>Purchase</b-button>
                                 <b-collapse id="collapse-buy" :visible="visible2">
@@ -72,14 +72,14 @@ export default {
           subcat: [{
             subcategory: 'Plastic',
             list: [
-              { name: 'Red Gutter', img: 'redplasticgutter', price: 3000 },
-              { name: 'Green Gutter', img: 'greenplasticgutter', price: 3000 }]
+              { name: 'Red Gutter', img: 'redplasticgutter', price: 3000, quantity: 90 },
+              { name: 'Green Gutter', img: 'greenplasticgutter', price: 3000, quantity: 88 }]
           },
           {
             subcategory: 'Metallic',
             list: [
-              { name: 'Silver Gutter', img: 'silvermetalgutter', price: 1800 },
-              { name: 'Black Gutter', img: 'blackmetalgutter', price: 1600 }]
+              { name: 'Silver Gutter', img: 'silvermetalgutter', price: 1800, quantity: 65 },
+              { name: 'Black Gutter', img: 'blackmetalgutter', price: 1600, quantity: 70 }]
           }]
         },
         {
@@ -88,16 +88,16 @@ export default {
             {
               subcategory: 'Shingles',
               list: [
-                { name: 'Black Shingles', img: 'blackshingles', price: 500 },
-                { name: 'Green Shingles', img: 'greenshingles', price: 500 },
-                { name: 'Coffee Shingles', img: 'coffeeshingles', price: 500 }]
+                { name: 'Black Shingles', img: 'blackshingles', price: 500, quantity: 90 },
+                { name: 'Green Shingles', img: 'greenshingles', price: 500, quantity: 85 },
+                { name: 'Coffee Shingles', img: 'coffeeshingles', price: 500, quantity: 66 }]
             },
             {
               subcategory: 'Classic',
               list: [
-                { name: 'Black Decra', img: 'blackclassicdecra', price: 600 },
-                { name: 'Green Decra', img: 'greenclassicdecra', price: 600 },
-                { name: 'Red Decra', img: 'redclassicdecra', price: 600 }]
+                { name: 'Black Decra', img: 'blackclassicdecra', price: 600, quantity: 70 },
+                { name: 'Green Decra', img: 'greenclassicdecra', price: 600, quantity: 59 },
+                { name: 'Red Decra', img: 'redclassicdecra', price: 600, quantity: 75 }]
             }]
         },
         {
@@ -106,14 +106,14 @@ export default {
             {
               subcategory: '2mm',
               list: [
-                { name: 'Red 2mm Rod', img: 'red2mmrods', price: 250 },
-                { name: 'Grey 2mm Rod', img: 'grey2mmrods', price: 250 }]
+                { name: 'Red 2mm Rod', img: 'red2mmrods', price: 250, quantity: 120 },
+                { name: 'Grey 2mm Rod', img: 'grey2mmrods', price: 250, quantity: 150 }]
             },
             {
               subcategory: '3mm',
               list: [
-                { name: 'Red 3mm Rod', img: 'red3mmrods', price: 300 },
-                { name: 'Grey 3mm Rod', img: 'grey3mmrods', price: 300 }]
+                { name: 'Red 3mm Rod', img: 'red3mmrods', price: 300, quantity: 200 },
+                { name: 'Grey 3mm Rod', img: 'grey3mmrods', price: 300, quantity: 95 }]
             }]
         }],
       quantity: 0,
