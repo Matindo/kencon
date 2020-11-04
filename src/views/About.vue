@@ -1,5 +1,11 @@
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
-  </div>
+  <b-container fluid>
+    <b-row><b-col><h3>About</h3></b-col></b-row>
+  </b-container>
 </template>
+
+<script>
+export default {
+  name: 'About'
+}
+</script>

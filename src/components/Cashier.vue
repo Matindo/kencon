@@ -5,41 +5,46 @@
         <h3 center>Items</h3>
         <b-card no-body class="w-100">
           <b-tabs pills card vertical active-nav-item-class="font-weight-bold text-uppercase">
-            <b-tab v-for="(item, index) in stock" :key="index" :title="item.category">
+            <b-tab v-for="(item, index1) in stock" :key="index1" :title="item.category">
               <b-row align-v="stretch">
                 <b-col>
-                  <b-tabs content-class="mt-3" justified>
-                    <b-tab v-for="(sub, index) in item.subcat" :key="index" :title="sub.subcategory">
-                      <b-row align-h="start">
-                        <b-col v-for="(spec, index) in sub.list" :key="index">
-                          <b-card overlay :img-src="spec.img" :img-alt="spec.img" text-variant="black" class="mb-2" style="width: 5rem; height: 5rem"  @click="selectItem()">
-                            <b-card-text> {{ spec.name }} </b-card-text>
-                            </b-card>
+                  <h4>{{item.category}}</h4>
+                  <b-tabs card content-class="mt-3" justified class="accordion">
+                    <b-tab v-for="(sub, index2) in item.subcat" :key="index2" :title="sub.subcategory" align-h="start" @click="visible1 = false">
+                      <b-row align-h="start" no-gutters cols-sm="2" cols-md="3" cols-lg="4">
+                        <b-col class="mb-1 mr-1" v-for="(spec, index3) in sub.list" :key="index3" v-b-toggle="'collapse-info' + index3" @click="currentIndex.splice(0, currentIndex.length); currentIndex.push(index1, index2, index3); setCurrentItem(); visible2=false">
+                          <b-card overlay :img-src="require(`../assets/${spec.img}.png`)" :img-alt="spec.name" style="margin-bottom: 10px; color: white" fluid>
+                            <b-card-text align-self="end"> {{ spec.name }} </b-card-text>
+                          </b-card>
+                        </b-col>
+                      </b-row>
+                      <hr>
+                      <b-row>
+                        <b-col>
+                          <b-collapse :id="'collapse-info' + runningIndex" :visible="visible1" accordion="my-accordion">
+                            <b-row v-if="currentItem">
+                              <b-col class="w-50">
+                                <b-img :src="require(`../assets/${currentItem.img}.png`)" fluid></b-img>
+                              </b-col>
+                              <b-col class="w-50">
+                                <p>In Stock: 100</p>
+                                <p>Price: {{ currentItem.price }}</p>
+                                <b-button block variant="success" v-b-toggle.collapse-buy>Purchase</b-button>
+                                <b-collapse id="collapse-buy" :visible="visible2">
+                                  <b-form>
+                                    <b-form-group>
+                                      <label for="quantity">Units to Buy:</label><b-input id="quantity" type="number" v-model="quantity" placeholder="0"></b-input>
+                                    </b-form-group>
+                                    <b-button block @click="buyItem(); visible2=false" variant="warning">Add To Cart</b-button>
+                                  </b-form>
+                                </b-collapse>
+                              </b-col>
+                            </b-row>
+                          </b-collapse>
                         </b-col>
                       </b-row>
                     </b-tab>
                   </b-tabs>
-                </b-col>
-                <div class="w-100"></div>
-                <b-col>
-                  <b-row fluid>
-                    <b-col class="w-50">
-                      <img :src="getImage(spec.img)"></img>
-                    </b-col>
-                    <b-col class="w-50">
-                      <p>In Stock: {{ spec.quantity }}</p>
-                      <p>Price: Ksh. {{ spec.price }}</p>
-                      <b-button block variant="success" v-b-toggle.collapse-buy>Purchase</b-button>
-                      <b-collapse id="collapse-buy">
-                        <b-form>
-                          <b-form-group>
-                            <label for="quantity">Units to Buy:</label><b-input id="quantity" type="number" v-model="quantity" placeholder="0"></b-input>
-                          </b-form-group>
-                          <b-button :class="visible ? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-buy" @click="buyItem(index, spec.name, spec.price)">Add To Cart</b-button> 
-                        </b-form>
-                      </b-collapse>
-                    </b-col>
-                  </b-row>
                 </b-col>
               </b-row>
             </b-tab>
@@ -49,7 +54,7 @@
       <b-col cols="4">
         <h3 center>Checkout</h3>
         <b-table responsive stripped sticky-header :items="cart"></b-table>
-	<p center>Total: Ksh. {{ this.runningTotal }}</p>
+        <p center>Total: Ksh. {{ this.runningTotal }}</p>
       </b-col>
     </b-row>
   </b-container>
@@ -67,14 +72,14 @@ export default {
           subcat: [{
             subcategory: 'Plastic',
             list: [
-              { name: 'Red', img: 'redplasticgutter.jpeg', price: 3000 },
-              { name: 'Green', img: 'greenplasticgutter.jpeg', price: 3000 }]
+              { name: 'Red Gutter', img: 'redplasticgutter', price: 3000 },
+              { name: 'Green Gutter', img: 'greenplasticgutter', price: 3000 }]
           },
           {
             subcategory: 'Metallic',
             list: [
-              { name: 'Silver', img: 'silvermetalgutter.jpeg', price: 1800 },
-              { name: 'Black', img: 'blackmetalgutter.jpeg', price: 1600 }]
+              { name: 'Silver Gutter', img: 'silvermetalgutter', price: 1800 },
+              { name: 'Black Gutter', img: 'blackmetalgutter', price: 1600 }]
           }]
         },
         {
@@ -83,16 +88,16 @@ export default {
             {
               subcategory: 'Shingles',
               list: [
-                { name: 'Black', img: 'blackshingles.jpeg', price: 500 },
-                { name: 'Green', img: 'greenshingles.jpeg', price: 500 },
-                { name: 'Coffee', img: 'coffeeshingles.jpeg', price: 500 }]
+                { name: 'Black Shingles', img: 'blackshingles', price: 500 },
+                { name: 'Green Shingles', img: 'greenshingles', price: 500 },
+                { name: 'Coffee Shingles', img: 'coffeeshingles', price: 500 }]
             },
             {
               subcategory: 'Classic',
               list: [
-                { name: 'Black', img: 'blackclassicdecra.jpeg', price: 600 },
-                { name: 'Green', img: 'greenclassicdecra.jpeg', price: 600 },
-                { name: 'Red', img: 'redclassicdecra.jpeg', price: 600 }]
+                { name: 'Black Decra', img: 'blackclassicdecra', price: 600 },
+                { name: 'Green Decra', img: 'greenclassicdecra', price: 600 },
+                { name: 'Red Decra', img: 'redclassicdecra', price: 600 }]
             }]
         },
         {
@@ -101,31 +106,40 @@ export default {
             {
               subcategory: '2mm',
               list: [
-                { name: 'Red', img: 'red2mmrods.jpeg', price: 250 },
-                { name: 'Grey', img: 'grey2mmrods.jpeg', price: 250 }]
+                { name: 'Red 2mm Rod', img: 'red2mmrods', price: 250 },
+                { name: 'Grey 2mm Rod', img: 'grey2mmrods', price: 250 }]
             },
             {
               subcategory: '3mm',
               list: [
-                { name: 'Red', img: 'red3mmrods.jpeg', price: 300 },
-                { name: 'Grey', img: 'grey3mmrods.jpeg', price: 300 }]
+                { name: 'Red 3mm Rod', img: 'red3mmrods', price: 300 },
+                { name: 'Grey 3mm Rod', img: 'grey3mmrods', price: 300 }]
             }]
         }],
       quantity: 0,
-      runningTotal: 0
+      runningTotal: 0,
+      currentIndex: [0, 0, 0],
+      runningIndex: null,
+      currentItem: null,
+      visible1: false,
+      visible2: false
     }
   },
   methods: {
-    buyItem: function (index, name, price) {
-      var tot = price * this.quantity
+    buyItem: function () {
+      var tot = this.currentItem.price * this.quantity
       this.runningTotal += tot
-      this.cart.push({ item: name, unitPrice: price, quantity: this.quantity, total: tot })
+      this.cart.push({ item: this.currentItem.name, unitPrice: this.currentItem.price, quantity: this.quantity, total: tot })
       this.quantity = 0
+    },
+    setCurrentItem: function () {
+      this.currentItem = this.stock[this.currentIndex[0]].subcat[this.currentIndex[1]].list[this.currentIndex[2]]
+      this.runningIndex = this.currentIndex[2]
     }
   },
   computed: {
-    getImage: function (img) {
-      return require('../assets/' + img)
+    getImage: function (name) {
+      return require(`../assets/${name}.jpeg`)
     }
   }
 }
