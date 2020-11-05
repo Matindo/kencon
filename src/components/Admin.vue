@@ -24,7 +24,7 @@
                                     <b-form inline>
                                       <label class="sr-only" for="addition">Quantity:</label>
                                       <b-input v-model="stockInfluence" id="addition" placeholder="e.g 100" type="number"></b-input>
-                                      <b-button :class="visibleA ? null : 'collapsed'" :aria-expanded="visibleA ? 'true' : 'false'" :aria-controls="'collapse-add' + index2" @click="item.quantity += Number(stockInfluence); stockInfluence = 0">Add</b-button>
+                                      <b-button :class="visibleA ? null : 'collapsed'" :aria-expanded="visibleA ? 'true' : 'false'" :aria-controls="'collapse-add' + index2" @click="addStock(index, index1, index2)">Add</b-button>
                                     </b-form>
                                   </b-collapse>
                                   <b-button block v-b-toggle="'collapse-remove' + index2" variant="danger">Remove from Stock</b-button>
@@ -33,7 +33,7 @@
                                       <label class="sr-only" for="removal">Quantity:</label>
                                       <b-input v-model="stockInfluence" id="removal" placeholder="e.g 5" type="number"></b-input>
                                       <b-form-text v-show="stockInfluence > item.quantity">Your deduction is more than the available stock</b-form-text>
-                                      <b-button v-if="stockInfluence <= item.quantity" :class="visibleB ? null : 'collapsed'" :aria-expanded="visibleB ? 'true' : 'false'" :aria-controls="'collapse-remove' + index2" @click="item.quantity -= stockInfluence; stockInfluence = 0">Remove</b-button>
+                                      <b-button v-if="stockInfluence <= item.quantity" :class="visibleB ? null : 'collapsed'" :aria-expanded="visibleB ? 'true' : 'false'" :aria-controls="'collapse-remove' + index2" @click="reduceStock(index, index1, index2)">Remove</b-button>
                                     </b-form>
                                   </b-collapse>
                                   <b-button block v-b-toggle="'collapse-trend' + index2" variant="info">View Stock Trends</b-button>
@@ -75,7 +75,8 @@
                                   <label class="sr-only" for="idn">ID:</label><b-input v-model="salesperson.idNo" id="idn" placeholder="e.g 12345678" type="number"></b-input>
                                   <label class="sr-only" for="mail">E-mail:</label><b-input v-model="salesperson.email" id="mail" placeholder="e.g alextom@mail.com" type="e-mail"></b-input>
                                   <label class="sr-only" for="phone">Mobile No:</label><b-input v-model="salesperson.phone" id="phone" placeholder="e.g 254712345678" type="tel"></b-input>
-                                  <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-sp" @click="editSalesperson(index)">Edit</b-button>
+                                  <label class="sr-only" for="status">Work Status:</label><b-input v-model="salesperson.status" id="status" placeholder="e.g On Duty" type="text"></b-input>
+                                  <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-sp" @click="editSalesperson(index, salesperson.idNo)">Edit</b-button>
                                 </b-form>
                               </b-collapse>
                               <b-button block v-b-toggle="'accordion' + salesperson.idNo" variant="info" @click="fetchRecords(salesperson.num)">View Sales Records</b-button>
@@ -101,60 +102,45 @@
 export default {
   data: function () {
     return {
-      staff: [
-        {
-          office: 'Main',
-          employees: [
-            {
-              idNo: '12345671', fullName: 'Cashier One', fname: 'Cashier', oname: 'One', phone: '254712345678', num: '001', img: 'avatar_1', status: 'On Duty'
-            },
-            {
-              idNo: '19845671', fullName: 'Cashier Two', fname: 'Cashier', oname: 'Two', phone: '254798765432', num: '002', img: 'avatar_2', status: 'On Duty'
-            }
-          ]
-        },
-        {
-          office: 'Thika',
-          employees: [
-            {
-              idNo: '19823745', fullName: 'Cashier Three', fname: 'Cashier', oname: 'Three', phone: '254776123984', num: '003', img: 'avatar_3', status: 'On Vacation'
-            },
-            {
-              idNo: '32456123', fullName: 'Cashier Four', fname: 'Cashier', oname: 'Four', phone: '254777542365', num: '004', img: 'avatar_4', status: 'On Duty'
-            }
-          ]
-        }
-      ],
-      stock: [
-        {
-          category: 'Gutters',
-          subcat: [{ subcategory: 'Plastic', list: [{ name: 'Red Gutter', img: 'redplasticgutter', price: 3000, quantity: 100 }, { name: 'Green Gutter', img: 'greenplasticgutter', price: 3000, quantity: 70 }] }, { subcategory: 'Metallic', list: [{ name: 'Silver Gutter', img: 'silvermetalgutter', price: 1800, quantity: 50 }, { name: 'Black Gutter', img: 'blackmetalgutter', price: 1600, quantity: 65 }] }]
-        }, {
-          category: 'Decra',
-          subcat: [{ subcategory: 'Shingles', list: [{ name: 'Black Shingles', img: 'blackshingles', price: 500, quantity: 80 }, { name: 'Green Shingles', img: 'greenshingles', price: 500, quantity: 55 }, { name: 'Coffee Shingles', img: 'coffeeshingles', price: 500, quantity: 77 }] },
-            {
-              subcategory: 'Classic',
-              list: [
-                { name: 'Black Decra', img: 'blackclassicdecra', price: 600, quantity: 50 },
-                { name: 'Green Decra', img: 'greenclassicdecra', price: 600, quantity: 90 },
-                { name: 'Red Decra', img: 'redclassicdecra', price: 600, quantity: 88 }]
-            }]
-        },
-        {
-          category: 'Curtain Rods',
-          subcat: [{
-            subcategory: '2mm',
-            list: [{ name: 'Red 2mm Rod', img: 'red2mmrods', price: 250, quantity: 250 }, {
-              name: 'Grey 2mm Rod',
-              img: 'grey2mmrods',
-              price: 250,
-              quantity: 300
-            }]
-          }, { subcategory: '3mm', list: [{ name: 'Red 3mm Rod', img: 'red3mmrods', price: 300, quantity: 550 }, { name: 'Grey 3mm Rod', img: 'grey3mmrods', price: 300, quantity: 300 }] }]
-        }
-      ],
+      tempStaff: [],
+      tempStock: [],
       stockInfluence: 0
     }
+  },
+  computed: {
+    stock: function () {
+      return this.$store.getters.STOCK
+    },
+    staff: function () {
+      return this.$store.getters.STAFF
+    }
+  },
+  methods: {
+    addStock: function (i1, i2, i3) {
+      this.tempStock[i1].subcat[i2].list[i3].quantity += Number(this.stockInfluence)
+      this.$store.dispatch('UPDATE_STOCK', this.tempStock)
+      this.stockInfluence = 0
+      this.tempStock = this.stock
+    },
+    reduceStock: function (i1, i2, i3) {
+      this.tempStock[i1].subcat[i2].list[i3].quantity -= this.stockInfluence
+      this.$store.dispatch('UPDATE_STOCK', this.tempStock)
+      this.stockInfluence = 0
+      this.tempStock = this.stock
+    },
+    editSalesperson: function (index, id) {
+      for (var i = 0; i < this.tempStaff[index].employees; i++) {
+        if (this.tempStaff[index].employees[i].idNo === id) {
+          this.tempStaff[index].employees[i].fullName = this.tempStaff[index].employees[i].fname + ' ' + this.tempStaff[index].employees[i].oname
+          this.$store.dispatch('UPDATE_STAFF', this.tempStaff)
+          this.tempStaff = this.staff
+        }
+      }
+    }
+  },
+  mounted: function () {
+    this.tempStaff = this.staff
+    this.tempStock = this.stock
   }
 }
 </script>
