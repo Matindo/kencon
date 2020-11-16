@@ -27,30 +27,24 @@ export default {
     return {
       address: '',
       pword: '',
-      showErr: false,
-      show: true
+      show: true,
+      errors: []
     }
   },
   computed: {
-    errors: function () {
-      var errs = []
-      if (this.$store.getters.USER_EXIST === false) {
-        errs.push('Invalid Username!')
-      }
-      if (this.$store.getters.TRUE_PASSWORD === false) {
-        errs.push('Incorrect password!')
-      }
-      return errs
+    showErr: function () {
+      var result = true
+      if (this.errors.length > 0) { result = true }
+      return result
     }
   },
   methods: {
     logIn: function () {
-      this.$store.dispatch('SIGN_IN', { address: this.address, pword: this.pword })
-      if (this.$store.getters.TRUE_PASSWORD) {
-        this.$router.push({ path: '/user' })
+      this.$store.dispatch('SIGN_IN', { email: this.address, pword: this.pword })
+      if (this.$store.getters.CURRENT_USER) {
+        this.$router.push('/user')
       } else {
-        this.$router.push({ path: '/' })
-        this.showErr = true
+        this.errors.push(this.$store.getters.ERROR)
       }
     },
     reset: function () {

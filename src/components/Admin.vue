@@ -24,7 +24,7 @@
                                     <b-form inline>
                                       <label class="sr-only" for="addition">Quantity:</label>
                                       <b-input v-model="stockInfluence" id="addition" placeholder="e.g 100" type="number"></b-input>
-                                      <b-button :class="visibleA ? null : 'collapsed'" :aria-expanded="visibleA ? 'true' : 'false'" :aria-controls="'collapse-add' + index2" @click="addStock(index, index1, index2)">Add</b-button>
+                                      <b-button :class="visibleA ? null : 'collapsed'" :aria-expanded="visibleA ? 'true' : 'false'" :aria-controls="'collapse-add' + index2" @click="addStock(item.id)">Add</b-button>
                                     </b-form>
                                   </b-collapse>
                                   <b-button block v-b-toggle="'collapse-remove' + index2" variant="danger">Remove from Stock</b-button>
@@ -33,7 +33,7 @@
                                       <label class="sr-only" for="removal">Quantity:</label>
                                       <b-input v-model="stockInfluence" id="removal" placeholder="e.g 5" type="number"></b-input>
                                       <b-form-text v-show="stockInfluence > item.quantity">Your deduction is more than the available stock</b-form-text>
-                                      <b-button v-if="stockInfluence <= item.quantity" :class="visibleB ? null : 'collapsed'" :aria-expanded="visibleB ? 'true' : 'false'" :aria-controls="'collapse-remove' + index2" @click="reduceStock(index, index1, index2)">Remove</b-button>
+                                      <b-button v-if="stockInfluence <= item.quantity" :class="visibleB ? null : 'collapsed'" :aria-expanded="visibleB ? 'true' : 'false'" :aria-controls="'collapse-remove' + index2" @click="reduceStock(item.id)">Remove</b-button>
                                     </b-form>
                                   </b-collapse>
                                   <b-button block v-b-toggle="'collapse-trend' + index2" variant="info">View Stock Trends</b-button>
@@ -49,6 +49,18 @@
                   </b-card-text>
                 </b-tab>
               </b-tabs>
+              <b-button block variant="success" v-b-toggle.collapse-stock-add>Add New Item</b-button>
+              <b-collapse id="collapse-stock-add">
+                <b-form>
+                  <b-form-group><label for="name">Item Name:</label><b-input v-model="newItem.name" id="name" placeholder="e.g Silver gutter" type="text"></b-input></b-form-group>
+                  <b-form-group><label for="quantity">Quantity:</label><b-input v-model="newItem.quantity" id="quantity" placeholder="e.g 50" type="number"></b-input></b-form-group>
+                  <b-form-group><label for="price">Price:</label><b-input v-model="newItem.price" id="price" placeholder="e.g 2000" type="number"></b-input></b-form-group>
+                  <b-form-group><label for="cat">Category:</label><b-input v-model="newItem.category" id="cat" placeholder="e.g Gutters" type="text"></b-input></b-form-group>
+                  <b-form-group><label for="subCat">Sub-category:</label><b-input v-model="newItem.subcategory" id="subCat" placeholder="e.g Metallic" type="text"></b-input></b-form-group>
+                  <b-form-file ref="itemimg" accept="image/*"></b-form-file>
+                  <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-stock-add" @click="addNewItem()">Add New Item</b-button>
+                </b-form>
+              </b-collapse>
             </b-card>
           </b-tab>
           <b-tab title="Sales">
@@ -57,14 +69,14 @@
                 <b-tab v-for="(office, index) in staff" :key="index" :title="office.office">
                   <b-card-text>
                     <h3>{{ office.name }}</h3>
-                      <b-card v-for="salesperson in office.employees" :key="salesperson.idNo" class="accordion" id="accordionMain" role="tablist">
+                      <b-card v-for="salesperson in office.employees" :key="salesperson.num" class="accordion" id="accordionMain" role="tablist">
                         <b-card-header header-class="header">
                           <b-row>
                             <b-col class="w-40">
                               <img :src="require(`../assets/avatars/${salesperson.img}.png`)" style="height: 8rem; width: 8rem;">
                             </b-col>
                             <b-col class="w-60">
-                              <h4>{{ salesperson.fullName }}</h4>
+                              <h5>{{salesperson.oname}}, {{salesperson.fname}}</h5>
                               <p>ID:{{ salesperson.idNo }}</p>
                               <p>Work Status: {{ salesperson.status }}</p>
                               <b-button block v-b-toggle="'collapse-sp' + salesperson.idNo" variant="success">Edit Details</b-button>
@@ -76,10 +88,12 @@
                                   <label class="sr-only" for="mail">E-mail:</label><b-input v-model="salesperson.email" id="mail" placeholder="e.g alextom@mail.com" type="e-mail"></b-input>
                                   <label class="sr-only" for="phone">Mobile No:</label><b-input v-model="salesperson.phone" id="phone" placeholder="e.g 254712345678" type="tel"></b-input>
                                   <label class="sr-only" for="status">Work Status:</label><b-input v-model="salesperson.status" id="status" placeholder="e.g On Duty" type="text"></b-input>
-                                  <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-sp" @click="editSalesperson(index, salesperson.idNo)">Edit</b-button>
+                                  <label class="sr-only" for="office">Office:</label><b-input v-model="salesperson.office" id="office" placeholder="e.g Main" type="text"></b-input>
+                                  <b-form-file ref="user-img" accept="image/*"></b-form-file>
+                                  <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" :aria-controls="'collapse-sp' + salesperson.idNo" @click="editSalesperson(index, salesperson.num)">Edit</b-button>
                                 </b-form>
                               </b-collapse>
-                              <b-button block v-b-toggle="'accordion' + salesperson.idNo" variant="info" @click="fetchRecords(salesperson.num)">View Sales Records</b-button>
+                              <b-button block v-b-toggle="'accordion' + salesperson.idNo" variant="info" @click="fetchRecords(salesperson.idNo)">View Sales Records</b-button>
                             </b-col>
                           </b-row>
                         </b-card-header>
@@ -90,6 +104,20 @@
                   </b-card-text>
                 </b-tab>
               </b-tabs>
+            <b-button variant="success" block v-b-toggle.collapse-staff-add>Add Staff Member</b-button>
+            <b-collapse id="collapse-staff-add">
+              <b-form>
+                <b-form-group><label for="1name">First Name:</label><b-input v-model="newStaff.fname" id="1name" placeholder="e.g Alex" type="text"></b-input></b-form-group>
+                <b-form-group><label for="2name">Other Names:</label><b-input v-model="newStaff.oname" id="2name" placeholder="e.g Doe Tomkins" type="text"></b-input></b-form-group>
+                <b-form-group><label for="idn">ID:</label><b-input v-model="newStaff.idNo" id="idn" placeholder="e.g 12345678" type="number"></b-input></b-form-group>
+                <b-form-group><label for="mail">E-mail:</label><b-input v-model="newStaff.email" id="mail" placeholder="e.g alextom@mail.com" type="e-mail"></b-input></b-form-group>
+                <b-form-group><label for="phone">Mobile No:</label><b-input v-model="newStaff.phone" id="phone" placeholder="e.g 254712345678" type="tel"></b-input></b-form-group>
+                <b-form-group><label for="status">Work Status:</label><b-input v-model="newStaff.status" id="status" placeholder="e.g On Duty" type="text"></b-input></b-form-group>
+                <b-form-group><label for="office">Office:</label><b-input v-model="newStaff.office" id="office" placeholder="e.g Main" type="text"></b-input></b-form-group>
+                <b-form-file ref="userimg" accept="image/*"></b-form-file>
+                <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-staff-add" @click="addNewStaff()">Edit</b-button>
+              </b-form>
+            </b-collapse>
             </b-card>
           </b-tab>
         </b-tabs>
@@ -104,43 +132,79 @@ export default {
     return {
       tempStaff: [],
       tempStock: [],
-      stockInfluence: 0
+      stockInfluence: 0,
+      staffSales: [],
+      itemSales: [],
+      newStaff: {},
+      newItem: {}
     }
   },
   computed: {
     stock: function () {
-      return this.$store.getters.STOCK
+      return this.$store.getters.DISPLAY_STOCK
     },
     staff: function () {
+      return this.$store.getters.DISPLAY_STAFF
+    },
+    temStaff: function () {
       return this.$store.getters.STAFF
+    },
+    temStock: function () {
+      return this.$store.getters.STOCK
     }
   },
   methods: {
-    addStock: function (i1, i2, i3) {
-      this.tempStock[i1].subcat[i2].list[i3].quantity += Number(this.stockInfluence)
-      this.$store.dispatch('UPDATE_STOCK', this.tempStock)
-      this.stockInfluence = 0
-      this.tempStock = this.stock
-    },
-    reduceStock: function (i1, i2, i3) {
-      this.tempStock[i1].subcat[i2].list[i3].quantity -= this.stockInfluence
-      this.$store.dispatch('UPDATE_STOCK', this.tempStock)
-      this.stockInfluence = 0
-      this.tempStock = this.stock
-    },
-    editSalesperson: function (index, id) {
-      for (var i = 0; i < this.tempStaff[index].employees; i++) {
-        if (this.tempStaff[index].employees[i].idNo === id) {
-          this.tempStaff[index].employees[i].fullName = this.tempStaff[index].employees[i].fname + ' ' + this.tempStaff[index].employees[i].oname
-          this.$store.dispatch('UPDATE_STAFF', this.tempStaff)
-          this.tempStaff = this.staff
+    addStock: function (id) {
+      for (var i = 0; i < this.tempStock.length; i++) {
+        if (this.tempStock[i].id === id) {
+          this.tempStock[i].quantity += Number(this.stockInfluence)
+          this.$store.dispatch('UPDATE_STOCK', this.tempStock)
+          this.stockInfluence = 0
+          this.tempStock = this.temStock
         }
       }
+    },
+    reduceStock: function (id) {
+      for (var i = 0; i < this.tempStock.length; i++) {
+        if (this.tempStock[i].id === id) {
+          this.tempStock[i].quantity -= this.stockInfluence
+          this.$store.dispatch('UPDATE_STOCK', this.tempStock)
+          this.stockInfluence = 0
+          this.tempStock = this.temStock
+        }
+      }
+    },
+    editSalesperson: function (index, id) {
+      var file = this.$refs.userimg.files[0]
+      for (var i = 0; i < this.staff[index].employees.length; i++) {
+        if (this.staff[index].employees[i].num === id) {
+          var sp = this.staff[index].employees[i]
+          if (file) { sp.img = file }
+          this.$store.dispatch('UPDATE_STAFF', sp)
+          this.tempStaff = this.temStaff
+        }
+      }
+    },
+    addNewStaff: function () {
+      var img = this.$refs.userimg.files[0]
+      this.newStaff.img = img
+      this.$store.dispatch('UPDATE_STAFF', this.newStaff)
+      this.tempStaff = this.temStaff
+    },
+    addNewItem: function () {
+      var img = this.$refs.itemimg.files[0]
+      this.newItem.img = img
+      this.$store.dispatch('UPDATE_STOCK', this.newItem)
+      this.tempStock = this.temStock
+    },
+    fetchRecords: function (num) {
+      this.$store.dispatch('STAFF_SALES', num)
+      this.staffSales = this.$store.getters.DISPLAY_SALES
     }
   },
   mounted: function () {
-    this.tempStaff = this.staff
-    this.tempStock = this.stock
+    this.tempStaff = this.temStaff
+    this.tempStock = this.temStock
   }
 }
 </script>

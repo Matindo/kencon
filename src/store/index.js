@@ -1,82 +1,214 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import axios from 'axios'
 
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
-    userExist: false,
-    truePassword: false,
     currentUser: null,
-    users: [
-      { name: 'Boss', address: 'admin_kc@gmail.com', pword: 'H9rdW@r3', role: 'Admin' },
-      { name: 'Cashier One', address: 'cash_1@gmail.com', pword: 'T3rm!n0l', role: 'Cashier' }
-    ],
-    staff: [{ office: 'Main', employees: [{ idNo: '12345671', fullName: 'Cashier One', fname: 'Cashier', oname: 'One', phone: '254712345678', num: '001', img: 'avatar_1', status: 'On Duty', email: 'cash_1@gmail.com' }, { idNo: '19845671', fullName: 'Cashier Two', fname: 'Cashier', oname: 'Two', phone: '254798765432', num: '002', img: 'avatar_2', status: 'On Duty', email: 'cash_2@gmail.com' }] },
-      {
-        office: 'Thika',
-        employees: [{
-          idNo: '19823745', fullName: 'Cashier Three', fname: 'Cashier', oname: 'Three', phone: '254776123984', num: '003', img: 'avatar_3', status: 'On Vacation', email: 'cash_3@gmail.com'
-        },
-        { idNo: '32456123', fullName: 'Cashier Four', fname: 'Cashier', oname: 'Four', phone: '254777542365', num: '004', img: 'avatar_4', status: 'On Duty', email: 'cash_1@gmail.com' }]
-      }],
-    stock: [{ category: 'Gutters', subcat: [{ subcategory: 'Plastic', list: [{ name: 'Red Gutter', img: 'redplasticgutter', price: 3000, quantity: 100 }, { name: 'Green Gutter', img: 'greenplasticgutter', price: 3000, quantity: 70 }] }, { subcategory: 'Metallic', list: [{ name: 'Silver Gutter', img: 'silvermetalgutter', price: 1800, quantity: 50 }, { name: 'Black Gutter', img: 'blackmetalgutter', price: 1600, quantity: 65 }] }] }, { category: 'Decra', subcat: [{ subcategory: 'Shingles', list: [{ name: 'Black Shingles', img: 'blackshingles', price: 500, quantity: 80 }, { name: 'Green Shingles', img: 'greenshingles', price: 500, quantity: 55 }, { name: 'Coffee Shingles', img: 'coffeeshingles', price: 500, quantity: 77 }] }, { subcategory: 'Classic', list: [{ name: 'Black Decra', img: 'blackclassicdecra', price: 600, quantity: 50 }, { name: 'Green Decra', img: 'greenclassicdecra', price: 600, quantity: 90 }, { name: 'Red Decra', img: 'redclassicdecra', price: 600, quantity: 88 }] }] },
-      {
-        category: 'Curtain Rods',
-        subcat: [{
-          subcategory: '2mm',
-          list: [{ name: 'Red 2mm Rod', img: 'red2mmrods', price: 250, quantity: 250 }, {
-            name: 'Grey 2mm Rod',
-            img: 'grey2mmrods',
-            price: 250,
-            quantity: 300
-          }]
-        }, { subcategory: '3mm', list: [{ name: 'Red 3mm Rod', img: 'red3mmrods', price: 300, quantity: 550 }, { name: 'Grey 3mm Rod', img: 'grey3mmrods', price: 300, quantity: 300 }] }]
-      }
-    ]
+    error: null,
+    staff: [],
+    displayStaff: [],
+    stock: [],
+    displayStock: [],
+    sales: [],
+    displaySales: []
   },
 
   getters: {
-    USER_EXIST: function (state) {
-      return state.userExist
-    },
-    TRUE_PASSWORD: function (state) {
-      return state.truePassword
-    },
     CURRENT_USER: function (state) {
       return state.currentUser
     },
     STOCK: function (state) {
       return state.stock
     },
+    DISPLAY_STOCK: function (state) {
+      return state.displayStock
+    },
     STAFF: function (state) {
       return state.staff
+    },
+    DISPLAY_STAFF: function (state) {
+      return state.displayStaff
+    },
+    DISPLAY_SALES: function (state) {
+      return state.displaySales
+    },
+    ERROR: function (state) {
+      return state.error
     }
   },
 
   mutations: {
-    SIGN_IN: function (state, payload) {
-      var i
-      for (i = 0; i < state.users.length; i++) {
-        if (state.users[i].address === payload.address) {
-          state.userExist = true
-          if (state.users[i].pword === payload.pword) {
-            state.truePassword = true
-            state.currentUser = state.users[i]
+    LOAD_STOCK: function (state) {
+      axios.get('../api/Stock.php').then(function (response) {
+        state.stock = response.data
+      }).catch(function (error) {
+        state.error = error
+      })
+    },
+    LOAD_STAFF: function (state) {
+      axios.get('../api/Staff.php').then(function (response) {
+        state.staff = response.data
+      }).catch(function (error) {
+        state.error = error
+      })
+    },
+    LOAD_SALES: function (state) {
+      axios.get('../api/Sales.php').then(function (response) {
+        state.sales = response.data
+      }).catch(function (error) {
+        state.error = error
+      })
+    },
+    STAFF_SALES: function (state, sp) {
+      const formData = new FormData()
+      formData.append('salesperson', sp)
+      axios({
+        method: 'get',
+        url: '../api/Sales.php',
+        data: formData,
+        config: { headers: { 'Content-Type': 'multipart/form-data' } }
+      }).then(function (response) {
+        state.displaySales = response.data
+      }).catch(function (err) {
+        state.error = err
+      })
+    },
+    ITEM_SALES: function (state, item) {
+      const formData = new FormData()
+      formData.append('item', item)
+      axios({ method: 'get', url: '../api/Sales.php', data: formData, config: { headers: { 'Content-Type': 'multipart/form-data' } } }).then(function (response) {
+        state.displaySales = response.data
+      }).catch(function (err) { state.error = err })
+    },
+    CATEGORIZE_STOCK: function (state) {
+      var stock = state.stock
+      var displayStock = []
+      function categorize (arr) {
+        var cat = arr[0].category
+        var catArr = null
+        for (var i = 0; i < arr.length; i++) {
+          if (arr[i].category === cat) {
+            catArr.push(arr[i])
+            arr.splice(i, 1)
           }
         }
+        return { category: cat, subcat: catArr }
       }
+      function subCategorize (arr) {
+        var subCat = arr[0].sub_category
+        var subCatArr = null
+        for (var i = 0; i < arr.length; i++) {
+          if (arr[i].sub_category === subCat) {
+            subCatArr.push(arr[i])
+            arr.splice(i, 1)
+          }
+        }
+        return { subcategory: subCat, list: subCatArr }
+      }
+      while (stock.length > 0) {
+        var catIndex = 0
+        var tempCatStock = categorize(stock)
+        displayStock.push({ category: tempCatStock.category, subcat: [] })
+        while (tempCatStock.subcat.length > 0) {
+          var tempSubCatStock = subCategorize(tempCatStock.subcat)
+          displayStock[catIndex].subcat.push({ subcategory: tempSubCatStock.subcategory, list: tempSubCatStock.list })
+        }
+        catIndex += 1
+      }
+      state.displayStock = displayStock
+    },
+    CATEGORIZE_EMPLOYEES: function (state) {
+      var staff = state.staff
+      var displayStaff = []
+      function categorize (arr) {
+        var off = arr[0].office
+        var officeArr = null
+        for (var i = 0; i < arr.length; i++) {
+          if (arr[i].office === off) {
+            officeArr.push(arr[i])
+            arr.splice(i, 1)
+          }
+        }
+        return { office: off, employees: officeArr }
+      }
+      while (staff.length > 0) {
+        var tempOffice = categorize(staff)
+        displayStaff.push({ office: tempOffice.office, employees: tempOffice.employees })
+      }
+      state.displayStaff = displayStaff
+    },
+    SIGN_IN: function (state, payload) {
+      const formData = new FormData()
+      formData.append('email', payload.email)
+      formData.append('pword', payload.pword)
+      axios({
+        method: 'get',
+        url: '../api/Users.php',
+        data: formData,
+        config: { headers: { 'Content-Type': 'multipart/form-data' } }
+      }).then(function (response) {
+        state.currentUser = response.data
+      }).catch(function (err) {
+        state.error = err
+      })
     },
     RESET_DETAILS: function (state) {
-      state.userExist = false
-      state.truePassword = false
       state.currentUser = null
     },
     UPDATE_STOCK: function (state, payload) {
-      state.stock = payload
+      const formData = new FormData()
+      formData.append('id', payload.id)
+      formData.append('name', payload.name)
+      formData.append('quantity', payload.quantity)
+      formData.append('price', payload.price)
+      formData.append('category', payload.category)
+      formData.append('subcategory', payload.subcategory)
+      formData.append('img', payload.img)
+      axios({
+        method: 'post',
+        url: '../api/Stock.php',
+        data: formData,
+        config: { headers: { 'Content-Type': 'multipart/form-data' } }
+      }).catch(function (err) { state.error = err })
     },
     UPDATE_STAFF: function (state, payload) {
-      state.staff = payload
+      const formData = new FormData()
+      formData.append('id', payload.num)
+      formData.append('idNo', payload.idNo)
+      formData.append('fname', payload.fname)
+      formData.append('oname', payload.oname)
+      formData.append('address', payload.address)
+      formData.append('phone', payload.phone)
+      formData.append('office', payload.office)
+      formData.append('img', payload.img)
+      formData.append('status', payload.status)
+      axios({
+        method: 'post',
+        url: '../api/Staff.php',
+        data: formData,
+        config: { headers: { 'Content-Type': 'multipart/form-data' } }
+      }).catch(function (err) { state.error = err })
+    },
+    ADD_SALE: function (state, payload) {
+      const formData = new FormData()
+      formData.append('item', payload.item)
+      formData.append('quantity', payload.quantity)
+      formData.append('salesperson', state.currentUser.idNo)
+      formData.append('time', Date())
+      formData.append('price', payload.tot)
+      axios({
+        method: 'post',
+        url: '../api/Sales.php',
+        data: formData,
+        config: { headers: { 'Content-Type': 'multipart/form-data' } }
+      }).then(function (response) {
+        console.log(response)
+      }).catch(function (err) {
+        state.error = err
+      })
     }
   },
 
@@ -89,9 +221,25 @@ const store = new Vuex.Store({
     },
     UPDATE_STOCK: function (context, payload) {
       context.commit('UPDATE_STOCK', payload)
+      context.commit('LOAD_STOCK')
+      context.commit('CATEGORIZE_STOCK')
     },
     UPDATE_STAFF: function (context, payload) {
       context.commit('UPDATE_STAFF', payload)
+      context.commit('LOAD_STADF')
+      context.commit('CATEGORIZE_STAFF')
+    },
+    SET_USER: function (context, payload) {
+      context.commit('SET_USER', payload)
+    },
+    ADD_SALE: function (context, payload) {
+      context.commit('ADD_SALE', payload)
+    },
+    STAFF_SALES: function (context, sp) {
+      context.commit('STAFF_SALES', sp)
+    },
+    ITEM_SALES: function (context, item) {
+      context.commit('ITEM_SALES', item)
     }
   },
 
