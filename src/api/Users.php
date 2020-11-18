@@ -1,68 +1,71 @@
 <?php
 //Users api//
 
-$host = "http://localhost:3306/"; 
-$user = "essaybud_essaybud"; 
-$password = "su@localz0n3"; 
+$host = "localhost:3306"; 
+$user = "root"; 
+$password = "TrInItY45"; 
 $dbname = "essaybud_Kencon"; 
-$id = '';
-$sql = '';
+$id = $error = $result = '';
 
 $con = mysqli_connect($host, $user, $password,$dbname);
 
 $method = $_SERVER['REQUEST_METHOD'];
-$request = explode('/', trim($_SERVER['PATH_INFO'],'/'));
-//$input = json_decode(file_get_contents('php://input'),true);
 
 
 if (!$con) {
-  die("Connection failed: " . mysqli_connect_error());
+  $error = "Connection failed: " . mysqli_connect_error();
+  echo $error;
 }
 
 
-switch ($method) {
-case 'GET':
+if ($method == 'GET') {
       if ($_GET['id']) {
         $id = $_GET['id'];
 	$sql = "select * from Kencon_users where id=$id");
-      } elseif ($_GET['email']) {
-        $email = $_GET['email'];
-        $pass = $_GET['pword'];
-        $sql = "select * from Kencon_users where email='$email' and password='$pass'";
+	$result = mysqli_query($con, $sql);
+        if (mysqli_num_rows($result) > 0) {
+          echo json_encode($result);
+	} else {
+          $error = "No such user in database!";
+          echo $error;
+        }
       } else {
-        $sql = "select * from Kencon_users";
+	$sql = "select * from Kencon_users";
+	$result = mysqli_query($con, $sql);
+	if (mysqli_num_rows($result) > 0) {
+          echo json_encode($result);
+	} else {
+          $error = "The database is empty!";
+          echo $error;
+	}
       }
       break;
-    case 'POST':
-      $name = $_POST["name"];
+} elseif ($method == 'POST') {
       $email = $_POST["email"];
       $pword = $_POST["pword"];
-      $role = $_POST["role"];
-
-      $sql = "insert into Kencon_users (name, email, password, role) values ('$name', '$email', '$pword', '$role')"; 
-      break;
+      if ($_POST["role"]) {
+        $role = $_POST["role"];
+        $name = $_POST["name"];
+	$sql = "insert into Kencon_users (name, email, password, role) values ('$name', '$email', '$pword', '$role')";
+      } else {
+	$sql = "select * from Kencon_users where email='$email'";
+	$result = mysqli_query($con, $sql);
+	if (mysqli_num_rows($result) > 0) {
+          $sql = "select * from Kencon_users where email='$email' and password='$pword'";
+	  $result = mysqli_query($con, $sql);
+	  if (mysqli_num_rows($result) > 0) {
+            echo json_encode($result);
+	  } else {
+            $error = "Incorrect password!";
+            echo $error;
+          }
+	} else {
+          $error = "This email does not exist in the database!";
+          echo $error;
+        }
+	break;
+      }
 }
-
-// run SQL statement
-$result = mysqli_query($con,$sql);
-
-// die if SQL statement failed
-if (!$result) {
-  //http_response_code(404);
-  die(mysqli_error($con));
-}
-
-if ($method == 'GET') {
-    if (!$id && !$email) echo '[';
-    for ($i=0 ; $i<mysqli_num_rows($result) ; $i++) {
-      echo ($i>0?',':'').json_encode(mysqli_fetch_object($result));
-    }
-    if (!$id) echo ']';
-  } elseif ($method == 'POST') {
-    echo json_encode($result);
-  } else {
-    echo mysqli_affected_rows($con);
-  }
 
 $con->close();
 

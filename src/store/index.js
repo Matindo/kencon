@@ -141,17 +141,14 @@ const store = new Vuex.Store({
       state.displayStaff = displayStaff
     },
     SIGN_IN: function (state, payload) {
-      const formData = new FormData()
-      formData.append('email', payload.email)
-      formData.append('pword', payload.pword)
-      axios({
-        method: 'get',
-        url: '../api/Users.php',
-        data: formData,
-        config: { headers: { 'Content-Type': 'multipart/form-data' } }
+      axios.post('http://localhost:8080/api/Users.php', {
+        email: payload.email,
+        pword: payload.pword
       }).then(function (response) {
         state.currentUser = response.data
+        console.log(response.data)
       }).catch(function (err) {
+        console.log(err)
         state.error = err
       })
     },
