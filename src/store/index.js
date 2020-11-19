@@ -141,15 +141,13 @@ const store = new Vuex.Store({
       state.displayStaff = displayStaff
     },
     SIGN_IN: function (state, payload) {
-      axios.post('http://localhost:8080/api/Users.php', {
-        email: payload.email,
-        pword: payload.pword
-      }).then(function (response) {
-        state.currentUser = response.data
-        console.log(response.data)
-      }).catch(function (err) {
-        console.log(err)
-        state.error = err
+      axios.post('@/api/Users.php?action=signin', payload).then(function (response) {
+        if (!response.data.error) {
+          state.currentUser = response.data.user
+          console.log(response.data.message)
+        } else {
+          state.error = response.data.message
+        }
       })
     },
     RESET_DETAILS: function (state) {
