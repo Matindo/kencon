@@ -1,68 +1,81 @@
 <?php
-//Staff api//
+/**  Staff api  **/
 
-$host = "http://localhost:3306/"; 
-$user = "essaybud_essaybud"; 
-$password = "su@localz0n3"; 
-$dbname = "essaybud_Kencon"; 
-$id = '';
-$sql = '';
+include('Connect.php');
 
-$con = mysqli_connect($host, $user, $password,$dbname);
+$result = array('error'=>false);
+$action = '';
 
-$method = $_SERVER['REQUEST_METHOD'];
-$request = explode('/', trim($_SERVER['PATH_INFO'],'/'));
-//$input = json_decode(file_get_contents('php://input'),true);
-
-
-if (!$con) {
-  die("Connection failed: " . mysqli_connect_error());
-}
-
-
-switch ($method) {
-    case 'GET':
-      $id = $_GET['id'];
-      $sql = "select * from Kencon_staff".($id?" where num=$id":''); 
-      break;
-    case 'POST':
-      $fname = $_POST["fname"];
-      $oname = $_POST["oname"];
-      $address = $_POST["email"];
-      $status = $_POST["status"];
-      $idNo = $_POST["idNo"];
-      $phone = $_POST["phone"];
-      $office =$_POST["office"];
-      $upload_dir = 'uploads/';
-      $upload_file = $upload_dir . basename($_FILES["userimg"]["name"]);
-      if (move_uploaded_file($_FILES["userimg"]["tmp_name"], $upload_file)) {
-        $img = $upload_file
-        $sql = "insert into Kencon_staff (fname, oname, address, status, idNo, phone, img, office) values ('$fname', '$oname', '$address', '$status', $idNo, '$phone', '$img', '$office')".($id?" where id=$id":'');
-      }
-      break;
-}
-
-// run SQL statement
-$result = mysqli_query($con,$sql);
-
-// die if SQL statement failed
-if (!$result) {
-  http_response_code(404);
-  die(mysqli_error($con));
-}
-
-if ($method == 'GET') {
-    if (!$id) echo '[';
-    for ($i=0 ; $i<mysqli_num_rows($result) ; $i++) {
-      echo ($i>0?',':'').json_encode(mysqli_fetch_object($result));
+if (isset($_GET['action'])) {
+  $action = $_GET['action'];
+  if ($action == 'read') {
+    $sql = $conn->query("SELECT * FROM Kencon_staff");
+    $staff = array();
+    while($row = $sql->fetch_assoc()){
+      array_push($staff, $row);
     }
-    if (!$id) echo ']';
-  } elseif ($method == 'POST') {
-    echo json_encode($result);
-  } else {
-    echo mysqli_affected_rows($con);
+    $result['staff'] = $staff;
   }
+  if ($action == 'create') {
+    $fname = mysqli_real_escape_string($conn, $_POST["fname"]);
+    $oname = mysqli_real_escape_string($conn, $_POST["oname"]);
+    $address = mysqli_real_escape_string($conn, $_POST["email"]);
+    $status = mysqli_real_escape_string($conn, $_POST["status"]);
+    $idNo = mysqli_real_escape_string($conn, $_POST["idNo"]);
+    $phone = mysqli_real_escape_string($conn, $_POST["phone"]);
+    $office = mysqli_real_escape_string($conn, $_POST["office"]);
+    $upload_dir = '../assets/staff/';
+    $upload_file = $upload_dir . basename($_FILES["userimg"]["name"]);
+    if (move_uploaded_file($_FILES["userimg"]["tmp_name"], $upload_file)) {
+      $img = $upload_file;
+      $sql = $conn->query("INSERT INTO Kencon_staff(fname, oname, email, status, idNo, phone, img, office) VALUES ('$fname', '$oname', '$address', '$status', $idNo, '$phone', '$img', '$office')");
+      if($sql){
+        $result['message'] = "Member $oname added successfully!";
+      } else {
+        $result['error'] = true;
+        $result['message'] = "Failed to add new user $oname!";
+      }
+    } else {
+      $result['error'] = true;
+      $result['message'] = "Failed to add image to local storage!";
+    }
+  }
+  if ($action == 'update') {
+    $id = mysqli_real_escape_string($conn, $_POST['id']);
+    $oname = mysqli_real_escape_string($conn, $_POST["oname"]);
+    $address = mysqli_real_escape_string($conn, $_POST["email"]);
+    $status = mysqli_real_escape_string($conn, $_POST["status"]);
+    $idNo = mysqli_real_escape_string($conn, $_POST["idNo"]);
+    $phone = mysqli_real_escape_string($conn, $_POST["phone"]);
+    $office = mysqli_real_escape_string($conn, $_POST["office"]);
+    $upload_dir = '../assets/staff/';
+    $upload_file = $upload_dir . basename($_FILES["userimg"]["name"]);
+    if (move_uploaded_file($_FILES["userimg"]["tmp_name"], $upload_file)) {
+      $img = $upload_file;
+      $sql = $conn->query("UPDATE Kencon_staff SET fname='$fname', oname='$oname', email='$address', status='$status', idNo='$idNo', phone='$phone', img='$img', office='$office' WHERE id='$id'");
+      if($sql){
+        $result['message'] = "Member $oname updated successfully!";
+      } else {
+        $result['error'] = true;
+        $result['message'] = "Failed to update $oname!";
+      }
+    } else {
+      $result['error'] = true;
+      $result['message'] = "Failed to add image to local storage!";
+    }
+  }
+  if ($action == 'delete') {
+    $id = mysqli_real_escape_string($conn, $_POST['id']);
+    $sql = $conn->query("DELETE FROM  Kencon_staff where id='$id'");
+    if($sql){
+      $result['message'] = "Member deleted successfully!";
+    } else {
+      $result['error'] = true;
+      $result['message'] = "Failed to delete member!";
+    }
+  }
+}
 
-$con->close();
-
+$conn->close();
+echo json_encode($result);
 ?>

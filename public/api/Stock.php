@@ -1,65 +1,78 @@
 <?php
-//Stock api//
+/**  Stock api  **/
 
-$host = "http://localhost:3306/"; 
-$user = "essaybud_essaybud"; 
-$password = "su@localz0n3"; 
-$dbname = "essaybud_Kencon"; 
-$id = '';
-$sql = '';
+include('Connect.php');
 
-$con = mysqli_connect($host, $user, $password,$dbname);
+$result = array('error'=>false);
+$action = '';
 
-$method = $_SERVER['REQUEST_METHOD'];
-$request = explode('/', trim($_SERVER['PATH_INFO'],'/'));
-//$input = json_decode(file_get_contents('php://input'),true);
-
-
-if (!$con) {
-  die("Connection failed: " . mysqli_connect_error());
-}
-
-
-switch ($method) {
-    case 'GET':
-      $id = $_GET['id'];
-      $sql = "select * from Kencon_stock".($id?" where id=$id":''); 
-      break;
-    case 'POST':
-      $name = $_POST["name"];
-      $quantity = $_POST["quantity"];
-      $price = $_POST["price"];
-      $category = $_POST["category"];
-      $subcat = $_POST["subcat"];
-      $upload_dir = 'uploads/';
-      $upload_file = $upload_dir . basename($_FILES["itemimg"][
-"name"]);                                                             if (move_uploaded_file($_FILES["itemimg"]["tmp_name"], $upload_file)) {                                                          $img = $upload_file
-$sql = "insert into Kencon_stock (name, quantity, price, img, category, sub_category) values ('$name', $quantity, $price, '$img', '$category', '$subcat')".($id?" where id=$id":'');
-      }
-      break;
-}
-
-// run SQL statement
-$result = mysqli_query($con,$sql);
-
-// die if SQL statement failed
-if (!$result) {
-  http_response_code(404);
-  die(mysqli_error($con));
-}
-
-if ($method == 'GET') {
-    if (!$id) echo '[';
-    for ($i=0 ; $i<mysqli_num_rows($result) ; $i++) {
-      echo ($i>0?',':'').json_encode(mysqli_fetch_object($result));
+if (isset($_GET['action'])) {
+  $action = $_GET['action'];
+  if ($action == 'read') {
+    $sql = $conn->query("SELECT * FROM Kencon_stock");
+    $stock = array();
+    while($row = $sql->fetch_assoc()){
+      array_push($stock, $row);
     }
-    if (!$id) echo ']';
-  } elseif ($method == 'POST') {
-    echo json_encode($result);
-  } else {
-    echo mysqli_affected_rows($con);
+    $result['stock'] = $stock;
   }
+  if ($action == 'create') {
+    $name = mysqli_real_escape_string($conn, $_POST["name"]);
+    $quantity = mysqli_real_escape_string($conn, $_POST["quantity"]);
+    $price = mysqli_real_escape_string($conn, $_POST["price"]);
+    $category = mysqli_real_escape_string($conn, $_POST["category"]);
+    $subcat = mysqli_real_escape_string($conn, $_POST["subcat"]);
+    $upload_dir = '../assets/stock/';
+    $upload_file = $upload_dir . basename($_FILES["userimg"]["name"]);
+    if (move_uploaded_file($_FILES["userimg"]["tmp_name"], $upload_file)) {
+      $img = $upload_file;
+      $sql = $conn->query("INSERT INTO Kencon_stock(name, quantity, price, category, subcategory, img) VALUES ('$name', '$quantity', '$price', '$category', '$subcat', '$img')");
+      if($sql){
+        $result['message'] = "New item $name added successfully!";
+      } else {
+        $result['error'] = true;
+        $result['message'] = "Failed to add new item $name!";
+      }
+    } else {
+      $result['error'] = true;
+      $result['message'] = "Failed to add image to local storage!";
+    }
+  }
+  if ($action == 'update') {
+    $id = mysqli_real_escape_string($conn, $_POST['id']);
+    $name = mysqli_real_escape_string($conn, $_POST["name"]);
+    $quantity = mysqli_real_escape_string($conn, $_POST["quantity"]);
+    $price = mysqli_real_escape_string($conn, $_POST["price"]);
+    $category = mysqli_real_escape_string($conn, $_POST["category"]);
+    $subcat = mysqli_real_escape_string($conn, $_POST["subcat"]);
+    $upload_dir = '../assets/stock/';
+    $upload_file = $upload_dir . basename($_FILES["userimg"]["name"]);
+    if (move_uploaded_file($_FILES["userimg"]["tmp_name"], $upload_file)) {
+      $img = $upload_file;
+      $sql = $conn->query("UPDATE Kencon_stock SET name='$name', quantity='$quantity', price='$price', category='$category', subcategory='$subcat', img='$img' WHERE id='$id'");
+      if($sql){
+        $result['message'] = "Item $name updated successfully!";
+      } else {
+        $result['error'] = true;
+        $result['message'] = "Failed to update $name!";
+      }
+    } else {
+      $result['error'] = true;
+      $result['message'] = "Failed to add image to local storage!";
+    }
+  }
+  if ($action == 'delete') {
+    $id = mysqli_real_escape_string($conn, $_POST['id']);
+    $sql = $conn->query("DELETE FROM  Kencon_stock where id='$id'");
+    if($sql){
+      $result['message'] = "Item deleted successfully!";
+    } else {
+      $result['error'] = true;
+      $result['message'] = "Failed to delete item!";
+    }
+  }
+}
 
-$con->close();
-
+$conn->close();
+echo json_encode($result);
 ?>

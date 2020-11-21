@@ -1,71 +1,73 @@
 <?php
-//Users api//
+/**  Users api  **/
 
-$host = "localhost"; 
-$user = "root"; 
-$password = "TrInItY45"; 
-$dbname = "essaybud_Kencon"; 
-$id = $error = $result = '';
+include('Connect.php');
 
-$con = mysqli_connect($host, $user, $password, $dbname);
+$result = array('error'=>false);
+$action = '';
 
-if (!$con) {
-  $error = "Connection failed: " . mysqli_connect_error();
-  echo $error;
-} else {
-  echo "SUCCESS!!!";
-}
-/**
-
-if ($method == 'GET') {
-      if ($_GET['id']) {
-        $id = $_GET['id'];
-	$sql = "select * from Kencon_users where id=$id");
-	$result = mysqli_query($con, $sql);
-        if (mysqli_num_rows($result) > 0) {
-          echo json_encode($result);
-	} else {
-          $error = "No such user in database!";
-          echo $error;
-        }
-      } else {
-	$sql = "select * from Kencon_users";
-	$result = mysqli_query($con, $sql);
-	if (mysqli_num_rows($result) > 0) {
-          echo json_encode($result);
-	} else {
-          $error = "The database is empty!";
-          echo $error;
-	}
+if (isset($_GET['action'])) {
+  $action = $_GET['action'];
+  if ($action == 'read') {
+    $sql = $conn->query("SELECT * FROM Kencon_users");
+    $users = array();
+    while($row = $sql->fetch_assoc()){
+      array_push($users, $row);
+    }
+    $result['users'] = $users;
+  }
+  if ($action == 'create') {
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $role = mysqli_real_escape_string($conn, $_POST['role']);
+    $pass = mysqli_real_escape_string($conn, crypt($_POST['pword'], '$6$rounds=427$CraZyMommAkateNinYasI$'));
+    $sql = $conn->query("INSERT INTO Kencon_users(name, email, password, role) values ('$name', '$email', '$pass', '$role')");
+    if($sql){
+      $result['message'] = "User $name added successfully!";
+    } else {
+      $result['error'] = true;
+      $result['message'] = "Failed to add new user $name!";
+    }
+  }
+  if ($action == 'update') {
+    $id = mysqli_real_escape_string($conn, $_POST['id']);
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $role = mysqli_real_escape_string($conn, $_POST['role']);
+    $pass = mysqli_real_escape_string($conn, crypt($_POST['pword'], '$6$rounds=427$CraZyMommAkateNinYasI$'));
+    $sql = $conn->query("UPDATE Kencon_users SET name='$name', email='$email', password='$pass', role='$role' where id=$id");
+    if($sql){
+      $result['message'] = "User $name updated successfully!";
+    } else {
+      $result['error'] = true;
+      $result['message'] = "Failed to update user $name!";
+    }
+  }
+  if ($action == 'login') {
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $pass = mysqli_real_escape_string($conn, crypt($_POST['pword'], '$6$rounds=427$CraZyMommAkateNinYasI$'));
+    $sql = $conn->query("SELECT * FROM Kencon_users WHERE email='$email' AND password='$pass'");
+    if($sql->mysqli_num_rows() > 0){
+      while($row = $sql->fetch_assoc()){
+        $result['user'] = $row;
       }
-      break;
-} elseif ($method == 'POST') {
-      $email = $_POST["email"];
-      $pword = $_POST["pword"];
-      if ($_POST["role"]) {
-        $role = $_POST["role"];
-        $name = $_POST["name"];
-	$sql = "insert into Kencon_users (name, email, password, role) values ('$name', '$email', '$pword', '$role')";
-      } else {
-	$sql = "select * from Kencon_users where email='$email'";
-	$result = mysqli_query($con, $sql);
-	if (mysqli_num_rows($result) > 0) {
-          $sql = "select * from Kencon_users where email='$email' and password='$pword'";
-	  $result = mysqli_query($con, $sql);
-	  if (mysqli_num_rows($result) > 0) {
-            echo json_encode($result);
-	  } else {
-            $error = "Incorrect password!";
-            echo $error;
-          }
-	} else {
-          $error = "This email does not exist in the database!";
-          echo $error;
-        }
-	break;
-      }
+    } else {
+      $result['error'] = true;
+      $result['message'] = "Invalid email or password!";
+    }
+  }
+  if ($action == 'delete') {
+    $id = mysqli_real_escape_string($conn, $_POST['id']);
+    $sql = $conn->query("DELETE FROM  Kencon_users where id='$id'");
+    if($sql){
+      $result['message'] = "User deleted successfully!";
+    } else {
+      $result['error'] = true;
+      $result['message'] = "Failed to delete user!";
+    }
+  }
 }
 
-$con->close();
-**/
+$conn->close();
+echo json_encode($result);
 ?>
