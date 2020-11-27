@@ -13,7 +13,8 @@ const store = new Vuex.Store({
     stock: [],
     displayStock: [],
     sales: [],
-    displaySales: []
+    itemSales: [],
+    staffSales: []
   },
 
   getters: {
@@ -32,8 +33,11 @@ const store = new Vuex.Store({
     DISPLAY_STAFF: function (state) {
       return state.displayStaff
     },
-    DISPLAY_SALES: function (state) {
-      return state.displaySales
+    STAFF_SALES: function (state) {
+      return state.staffSales
+    },
+    ITEM_SALES: function (state) {
+      return state.itemSales
     },
     ERROR: function (state) {
       return state.error

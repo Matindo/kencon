@@ -115,7 +115,7 @@
                 <b-form-group><label for="status">Work Status:</label><b-input v-model="newStaff.status" id="status" placeholder="e.g On Duty" type="text"></b-input></b-form-group>
                 <b-form-group><label for="office">Office:</label><b-input v-model="newStaff.office" id="office" placeholder="e.g Main" type="text"></b-input></b-form-group>
                 <b-form-file ref="userimg" accept="image/*"></b-form-file>
-                <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-staff-add" @click="addNewStaff()">Edit</b-button>
+                <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-staff-add" @click="addNewStaff()">Add</b-button>
               </b-form>
             </b-collapse>
             </b-card>
@@ -157,8 +157,9 @@ export default {
     addStock: function (id) {
       for (var i = 0; i < this.tempStock.length; i++) {
         if (this.tempStock[i].id === id) {
-          this.tempStock[i].quantity += Number(this.stockInfluence)
-          this.$store.dispatch('UPDATE_STOCK', this.tempStock)
+          var currentItem = this.tempStock[i]
+          currentItem.quantity += Number(this.stockInfluence)
+          this.$store.dispatch('UPDATE_STOCK', currentItem)
           this.stockInfluence = 0
           this.tempStock = this.temStock
         }
@@ -167,8 +168,9 @@ export default {
     reduceStock: function (id) {
       for (var i = 0; i < this.tempStock.length; i++) {
         if (this.tempStock[i].id === id) {
-          this.tempStock[i].quantity -= this.stockInfluence
-          this.$store.dispatch('UPDATE_STOCK', this.tempStock)
+          var currentItem = this.tempStock[i]
+          currentItem.quantity -= this.stockInfluence
+          this.$store.dispatch('UPDATE_STOCK', currentItem)
           this.stockInfluence = 0
           this.tempStock = this.temStock
         }
@@ -188,18 +190,30 @@ export default {
     addNewStaff: function () {
       var img = this.$refs.userimg.files[0]
       this.newStaff.img = img
-      this.$store.dispatch('UPDATE_STAFF', this.newStaff)
+      this.$store.dispatch('ADD_STAFF', this.newStaff)
       this.tempStaff = this.temStaff
     },
     addNewItem: function () {
       var img = this.$refs.itemimg.files[0]
       this.newItem.img = img
-      this.$store.dispatch('UPDATE_STOCK', this.newItem)
+      this.$store.dispatch('ADD_STOCK', this.newItem)
       this.tempStock = this.temStock
     },
-    fetchRecords: function (num) {
+    removeItem: function (id) {
+      this.$store.dispatch('DELETE_STOCK', id)
+      this.tempStock = this.temStock
+    },
+    removeStaff: function (id) {
+      this.$store.dispatch('DELETE_STAFF', id)
+      this.tempStaff = this.temStaff
+    },
+    fetchStaffRecords: function (num) {
       this.$store.dispatch('STAFF_SALES', num)
-      this.staffSales = this.$store.getters.DISPLAY_SALES
+      this.staffSales = this.$store.getters.STAFF_SALES
+    },
+    fetchItemSales: function (item) {
+      this.$store.dispatch('ITEM_SALES', item)
+      this.itemSales = this.$store.getters.ITEM_SALES
     }
   },
   mounted: function () {
