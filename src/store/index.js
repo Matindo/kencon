@@ -275,11 +275,14 @@ const store = new Vuex.Store({
     ADD_SALE: function (context, payload) {
       context.commit('ADD_SALE', payload)
     },
-    STAFF_SALES: function (context, sp) {
-      context.commit('STAFF_SALES', sp)
+    ADD_USER: function (context, payload) {
+      context.commit('ADD_USER', payload)
     },
-    ITEM_SALES: function (context, item) {
-      context.commit('ITEM_SALES', item)
+    ADD_STOCK: function (context, item) {
+      context.commit('ADD_STOCK', item)
+    },
+    ADD_STAFF: function (context, person) {
+      context.commit('ADD_STAFF', person)
     }
   },
 
