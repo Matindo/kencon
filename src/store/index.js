@@ -7,7 +7,8 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
   state: {
     currentUser: null,
-    error: null,
+    isError: false,
+    message: null,
     staff: [],
     displayStaff: [],
     stock: [],
@@ -39,24 +40,27 @@ const store = new Vuex.Store({
     ITEM_SALES: function (state) {
       return state.itemSales
     },
-    ERROR: function (state) {
-      return state.error
+    MESSAGE: function (state) {
+      return state.message
+    },
+    IS_ERROR: function (state) {
+      return state.isError
     }
   },
 
   mutations: {
     LOAD_STOCK: function (state) {
-      axios.get('@/api/Stock.php/action=read').then(function (response) {
+      axios.get('./api/Stock.php/action=read').then(function (response) {
         state.stock = response.data.stock
       })
     },
     LOAD_STAFF: function (state) {
-      axios.get('@/api/Staff.php?action=read').then(function (response) {
+      axios.get('./api/Staff.php?action=read').then(function (response) {
         state.staff = response.data.staff
       })
     },
     LOAD_SALES: function (state) {
-      axios.get('@/api/Sales.php?action=read').then(function (response) {
+      axios.get('./api/Sales.php?action=read').then(function (response) {
         state.sales = response.data.sales
       })
     },
@@ -65,7 +69,7 @@ const store = new Vuex.Store({
       formData.append('salesperson', sp)
       axios({
         method: 'get',
-        url: '@/api/Sales.php?action=read',
+        url: './api/Sales.php?action=read',
         data: formData,
         config: { headers: { 'Content-Type': 'multipart/form-data' } }
       }).then(function (response) {
@@ -75,7 +79,7 @@ const store = new Vuex.Store({
     ITEM_SALES: function (state, item) {
       const formData = new FormData()
       formData.append('item', item)
-      axios({ method: 'get', url: '@/api/Sales.php?action=read', data: formData, config: { headers: { 'Content-Type': 'multipart/form-data' } } }).then(function (response) {
+      axios({ method: 'get', url: './api/Sales.php?action=read', data: formData, config: { headers: { 'Content-Type': 'multipart/form-data' } } }).then(function (response) {
         state.displaySales = response.dara.sales
       })
     },
@@ -137,13 +141,20 @@ const store = new Vuex.Store({
       state.displayStaff = displayStaff
     },
     SIGN_IN: function (state, payload) {
-      axios.post('@/api/Users.php?action=login', payload).then(function (response) {
-        if (!response.data.error) {
+      const formData = new FormData()
+      formData.append('email', payload.email)
+      formData.append('pword', payload.pword)
+      axios({
+        method: 'post',
+        url: './api/Users.php?action=login',
+        data: formData
+      }).then(function (response) {
+        state.isError = response.data.error
+        if (!state.isError) {
           state.currentUser = response.data.user
-          console.log(response.data.message)
-        } else {
-          state.error = response.data.message
         }
+        state.message = response.data.message
+        console.log(response.data.message)
       })
     },
     RESET_DETAILS: function (state) {
@@ -156,7 +167,14 @@ const store = new Vuex.Store({
       formData.append('email', payload.email)
       formData.append('role', payload.role)
       formData.append('pword', payload.pword)
-      axios({ method: 'post', url: '@/api/Users.php?action=update', data: formData }).then(function (response) { if (response.data.error) { state.error = response.data.message } else { state.message = response.data.message } })
+      axios({
+        method: 'post',
+        url: './api/Users.php?action=update',
+        data: formData
+      }).then(function (response) {
+        state.isError = response.data.error
+        state.message = response.data.message
+      })
     },
     UPDATE_STOCK: function (state, payload) {
       const formData = new FormData()
@@ -169,10 +187,13 @@ const store = new Vuex.Store({
       formData.append('img', payload.img)
       axios({
         method: 'post',
-        url: '@/api/Stock.php?action=update',
+        url: './api/Stock.php?action=update',
         data: formData,
         config: { headers: { 'Content-Type': 'multipart/form-data' } }
-      }).catch(function (err) { state.error = err })
+      }).then(function (response) {
+        state.isError = response.data.error
+        state.message = response.data.message
+      })
     },
     UPDATE_STAFF: function (state, payload) {
       const formData = new FormData()
@@ -187,10 +208,13 @@ const store = new Vuex.Store({
       formData.append('status', payload.status)
       axios({
         method: 'post',
-        url: '@/api/Staff.php?action=update',
+        url: './api/Staff.php?action=update',
         data: formData,
         config: { headers: { 'Content-Type': 'multipart/form-data' } }
-      }).catch(function (err) { state.error = err })
+      }).then(function (response) {
+        state.isError = response.data.error
+        state.message = response.data.message
+      })
     },
     ADD_SALE: function (state, payload) {
       const formData = new FormData()
@@ -200,10 +224,13 @@ const store = new Vuex.Store({
       formData.append('price', payload.tot)
       axios({
         method: 'post',
-        url: '@/api/Sales.php?action=create',
+        url: './api/Sales.php?action=create',
         data: formData,
         config: { headers: { 'Content-Type': 'multipart/form-data' } }
-      }).then(function (response) { if (response.data.error) { state.error = response.data.message } else { state.message = response.data.message } })
+      }).then(function (response) {
+        state.isError = response.data.error
+        state.message = response.data.message
+      })
     },
     ADD_STAFF: function (state, payload) {
       const formData = new FormData()
@@ -217,15 +244,12 @@ const store = new Vuex.Store({
       formData.append('status', payload.status)
       axios({
         method: 'post',
-        url: '@/api/Staff.php?action=create',
+        url: './api/Staff.php?action=create',
         data: formData,
         config: { headers: { 'Content-Type': 'multipart/form-data' } }
       }).then(function (response) {
-        if (response.data.error) {
-          state.error = response.data.message
-        } else {
-          state.message = response.data.message
-        }
+        state.isError = response.data.error
+        state.message = response.data.message
       })
     },
     ADD_STOCK: function (state, payload) {
@@ -236,7 +260,10 @@ const store = new Vuex.Store({
       formData.append('category', payload.category)
       formData.append('subcategory', payload.subcategory)
       formData.append('img', payload.img)
-      axios({ method: 'post', url: '@/api/Stock.php?action=create', data: formData, config: { headers: { 'Content-Type': 'multipart/form-data' } } }).then(function (response) { if (response.data.error) { state.error = response.data.message } else { state.message = response.data.message } })
+      axios({ method: 'post', url: './api/Stock.php?action=create', data: formData, config: { headers: { 'Content-Type': 'multipart/form-data' } } }).then(function (response) {
+        state.isError = response.data.error
+        state.message = response.data.message
+      })
     },
     ADD_USER: function (state, payload) {
       const formData = new FormData()
@@ -246,9 +273,12 @@ const store = new Vuex.Store({
       formData.append('pword', payload.pword)
       axios({
         method: 'post',
-        url: '@/api/Users.php?action=create',
+        url: './api/Users.php?action=create',
         data: formData
-      }).then(function (response) { if (response.data.error) { state.error = response.data.message } else { state.message = response.data.message } })
+      }).then(function (response) {
+        state.isError = response.data.error
+        state.message = response.data.message
+      })
     }
   },
 

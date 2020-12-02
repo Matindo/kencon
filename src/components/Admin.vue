@@ -2,6 +2,8 @@
   <b-container fluid>
     <b-row align-v="stretch">
       <b-col class="w-100">
+        <b-alert dismissable :variant="isError ? 'danger' : 'success'" :show="message">{{ message }}
+        </b-alert>
         <b-tabs justified>
           <b-tab title="Stock">
             <b-card no-body>
@@ -57,7 +59,7 @@
                   <b-form-group><label for="price">Price:</label><b-input v-model="newItem.price" id="price" placeholder="e.g 2000" type="number"></b-input></b-form-group>
                   <b-form-group><label for="cat">Category:</label><b-input v-model="newItem.category" id="cat" placeholder="e.g Gutters" type="text"></b-input></b-form-group>
                   <b-form-group><label for="subCat">Sub-category:</label><b-input v-model="newItem.subcategory" id="subCat" placeholder="e.g Metallic" type="text"></b-input></b-form-group>
-                  <b-form-file ref="itemimg" accept="image/*"></b-form-file>
+                  <b-form-file ref="itemimg" accept="image/*" @change="itemImgChange"></b-form-file>
                   <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-stock-add" @click="addNewItem()">Add New Item</b-button>
                 </b-form>
               </b-collapse>
@@ -114,13 +116,40 @@
                 <b-form-group><label for="phone">Mobile No:</label><b-input v-model="newStaff.phone" id="phone" placeholder="e.g 254712345678" type="tel"></b-input></b-form-group>
                 <b-form-group><label for="status">Work Status:</label><b-input v-model="newStaff.status" id="status" placeholder="e.g On Duty" type="text"></b-input></b-form-group>
                 <b-form-group><label for="office">Office:</label><b-input v-model="newStaff.office" id="office" placeholder="e.g Main" type="text"></b-input></b-form-group>
-                <b-form-file ref="userimg" accept="image/*"></b-form-file>
+                <b-form-file ref="userimg" accept="image/*" @change="staffImgChange"></b-form-file>
                 <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-staff-add" @click="addNewStaff()">Add</b-button>
               </b-form>
             </b-collapse>
             </b-card>
           </b-tab>
         </b-tabs>
+      </b-col>
+    </b-row>
+    <b-row>
+      <b-col class="w-100">
+        <b-button variant="success" block v-b-toggle.collapse-add-user>ADD USER</b-button>
+        <b-collapse id="collapse-add-user">
+          <b-form>
+            <b-form-group id="input-group-1" label="E-mail address:" label-for="mail" description="We'll never share yoir e-mail address with anyone">
+              <b-form-input id="mail" v-model="address" type="email" placeholder="user@mail.com" required></b-form-input>
+            </b-form-group>
+            <b-form-group id="input-group-2" label="Password:" label-for="pass">
+              <b-form-input id="pass" v-model="pword" type="password" required></b-form-input>
+            </b-form-group>
+            <b-form-group id="input-group-3" label="Name:" label-for="name">
+              <b-form-input id="name" v-model="name" type="text"
+ required></b-form-input>
+            </b-form-group>
+            <b-form-group id="input-group-4" label="Role:" label-for="role">
+              <b-form-input id="role" v-model="role" type="text" required></b-form-input>
+            </b-form-group>
+            <b-form-group>
+              <b-form-text v-for="(error, index) in errors" :key
+="index" variant="danger">{{ error }}</b-form-text>
+            </b-form-group>
+            <b-button  variant="primary" @click="addUser">Add User</b-button>
+          </b-form>
+        </b-collapse>
       </b-col>
     </b-row>
   </b-container>
@@ -136,7 +165,13 @@ export default {
       staffSales: [],
       itemSales: [],
       newStaff: {},
-      newItem: {}
+      newItem: {},
+      itemImage: null,
+      staffImage: null,
+      address: '',
+      name: '',
+      pword: '',
+      role: ''
     }
   },
   computed: {
@@ -151,6 +186,12 @@ export default {
     },
     temStock: function () {
       return this.$store.getters.STOCK
+    },
+    message: function () {
+      return this.$store.getters.MESSAGE
+    },
+    isError: function () {
+      return this.$store.getters.IS_ERROR
     }
   },
   methods: {
@@ -187,17 +228,28 @@ export default {
         }
       }
     },
+    staffImgChange: function () {
+      this.newStaff.img = this.$refs.staffimg.files[0]
+      this.staffImage = this.$refs.staffimg.files[0].name
+    },
+    itemImgChange: function () {
+      this.newItem.img = this.$refs.itemimg.files[0]
+      this.itemImage = this.$refs.itemimg.files[0].name
+    },
     addNewStaff: function () {
-      var img = this.$refs.userimg.files[0]
-      this.newStaff.img = img
       this.$store.dispatch('ADD_STAFF', this.newStaff)
       this.tempStaff = this.temStaff
     },
     addNewItem: function () {
-      var img = this.$refs.itemimg.files[0]
-      this.newItem.img = img
       this.$store.dispatch('ADD_STOCK', this.newItem)
       this.tempStock = this.temStock
+    },
+    addUser: function () {
+      this.$store.dispatch('ADD_USER', { name: this.name, email: this.address, role: this.role, pword: this.pword })
+      this.name = ''
+      this.role = ''
+      this.pword = ''
+      this.address = ''
     },
     removeItem: function (id) {
       this.$store.dispatch('DELETE_STOCK', id)
