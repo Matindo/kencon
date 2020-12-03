@@ -78,7 +78,12 @@ export default {
     },
     processCart: function () {
       this.$store.dispatch('ADD_SALE', this.cart)
-      this.$store.dispatch('UPDATE_STOCK', this.tempStock)
+      for (var i = 0; i < this.tempStock.length; i++) {
+        var tempItem = this.tempStock[i]
+        this.$store.dispatch('UPDATE_STOCK', tempItem)
+      }
+      this.$store.dispatch('LOAD_STOCK')
+      this.stock()
       this.tempStock = this.$store.getters.STOCK
       this.cart.splice(0, this.cart.length)
       // print receipt
@@ -90,6 +95,7 @@ export default {
     }
   },
   mounted: function () {
+    this.$store.dispatch('LOAD_STOCK')
     this.tempStock = this.$store.getters.STOCK
   }
 }

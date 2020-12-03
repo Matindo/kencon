@@ -2,7 +2,7 @@
   <b-container fluid>
     <b-row align-v="stretch">
       <b-col class="w-100">
-        <b-alert dismissable :variant="isError ? 'danger' : 'success'" :show="message">{{ message }}
+        <b-alert dismissable :variant="isErr ? 'danger' : 'success'" :show="message">{{ message }}
         </b-alert>
         <b-tabs justified>
           <b-tab title="Stock">
@@ -60,6 +60,7 @@
                   <b-form-group><label for="cat">Category:</label><b-input v-model="newItem.category" id="cat" placeholder="e.g Gutters" type="text"></b-input></b-form-group>
                   <b-form-group><label for="subCat">Sub-category:</label><b-input v-model="newItem.subcategory" id="subCat" placeholder="e.g Metallic" type="text"></b-input></b-form-group>
                   <b-form-file ref="itemimg" accept="image/*" @change="itemImgChange"></b-form-file>
+                  <img :src="base64Img" style="height:150px; width:150px" />
                   <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-stock-add" @click="addNewItem()">Add New Item</b-button>
                 </b-form>
               </b-collapse>
@@ -91,7 +92,8 @@
                                   <label class="sr-only" for="phone">Mobile No:</label><b-input v-model="salesperson.phone" id="phone" placeholder="e.g 254712345678" type="tel"></b-input>
                                   <label class="sr-only" for="status">Work Status:</label><b-input v-model="salesperson.status" id="status" placeholder="e.g On Duty" type="text"></b-input>
                                   <label class="sr-only" for="office">Office:</label><b-input v-model="salesperson.office" id="office" placeholder="e.g Main" type="text"></b-input>
-                                  <b-form-file ref="user-img" accept="image/*"></b-form-file>
+                                  <b-form-file accept="image/*" @change="staffImgChange"></b-form-file>
+                                  <img :src="base64Img" style="height:150px; width:150px" />
                                   <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" :aria-controls="'collapse-sp' + salesperson.idNo" @click="editSalesperson(index, salesperson.num)">Edit</b-button>
                                 </b-form>
                               </b-collapse>
@@ -117,6 +119,7 @@
                 <b-form-group><label for="status">Work Status:</label><b-input v-model="newStaff.status" id="status" placeholder="e.g On Duty" type="text"></b-input></b-form-group>
                 <b-form-group><label for="office">Office:</label><b-input v-model="newStaff.office" id="office" placeholder="e.g Main" type="text"></b-input></b-form-group>
                 <b-form-file ref="userimg" accept="image/*" @change="staffImgChange"></b-form-file>
+                <img :src="base64Img" style="height:150px; width:150px" />
                 <b-button :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-staff-add" @click="addNewStaff()">Add</b-button>
               </b-form>
             </b-collapse>
@@ -144,8 +147,7 @@
               <b-form-input id="role" v-model="role" type="text" required></b-form-input>
             </b-form-group>
             <b-form-group>
-              <b-form-text v-for="(error, index) in errors" :key
-="index" variant="danger">{{ error }}</b-form-text>
+              <b-form-text v-if="isErr" variant="danger">{{ message }}</b-form-text>
             </b-form-group>
             <b-button  variant="primary" @click="addUser">Add User</b-button>
           </b-form>
@@ -156,11 +158,11 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
   data: function () {
     return {
-      tempStaff: [],
-      tempStock: [],
       stockInfluence: 0,
       staffSales: [],
       itemSales: [],
@@ -168,6 +170,7 @@ export default {
       newItem: {},
       itemImage: null,
       staffImage: null,
+      base64Img: null,
       address: '',
       name: '',
       pword: '',
@@ -175,24 +178,14 @@ export default {
     }
   },
   computed: {
-    stock: function () {
-      return this.$store.getters.DISPLAY_STOCK
-    },
-    staff: function () {
-      return this.$store.getters.DISPLAY_STAFF
-    },
-    temStaff: function () {
-      return this.$store.getters.STAFF
-    },
-    temStock: function () {
-      return this.$store.getters.STOCK
-    },
-    message: function () {
-      return this.$store.getters.MESSAGE
-    },
-    isError: function () {
-      return this.$store.getters.IS_ERROR
-    }
+    ...mapGetters({
+      stock: 'DISPLAY_STOCK',
+      tempStock: 'STOCK',
+      staff: 'DISPLAY_STAFF',
+      tempStaff: 'STAFF',
+      message: 'MESSAGE',
+      isErr: 'IS_ERROR'
+    })
   },
   methods: {
     addStock: function (id) {
@@ -202,7 +195,6 @@ export default {
           currentItem.quantity += Number(this.stockInfluence)
           this.$store.dispatch('UPDATE_STOCK', currentItem)
           this.stockInfluence = 0
-          this.tempStock = this.temStock
         }
       }
     },
@@ -213,36 +205,42 @@ export default {
           currentItem.quantity -= this.stockInfluence
           this.$store.dispatch('UPDATE_STOCK', currentItem)
           this.stockInfluence = 0
-          this.tempStock = this.temStock
         }
       }
     },
     editSalesperson: function (index, id) {
-      var file = this.$refs.userimg.files[0]
       for (var i = 0; i < this.staff[index].employees.length; i++) {
         if (this.staff[index].employees[i].num === id) {
           var sp = this.staff[index].employees[i]
-          if (file) { sp.img = file }
+          sp.img = this.staffImage
           this.$store.dispatch('UPDATE_STAFF', sp)
-          this.tempStaff = this.temStaff
         }
       }
     },
-    staffImgChange: function () {
-      this.newStaff.img = this.$refs.staffimg.files[0]
-      this.staffImage = this.$refs.staffimg.files[0].name
+    staffImgChange: function (event) {
+      this.staffImage = event.target.files[0]
+      this.encodeImage(this.staffImage)
     },
-    itemImgChange: function () {
-      this.newItem.img = this.$refs.itemimg.files[0]
-      this.itemImage = this.$refs.itemimg.files[0].name
+    itemImgChange: function (event) {
+      this.itemImage = event.target.files[0]
+      this.encodeImage(this.itemImage)
+    },
+    encodeImage: function (image) {
+      if (image) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          this.base64Img = e.target.result
+        }
+        reader.readAsDataURL(image)
+      }
     },
     addNewStaff: function () {
+      this.newStaff.img = this.staffImage
       this.$store.dispatch('ADD_STAFF', this.newStaff)
-      this.tempStaff = this.temStaff
     },
     addNewItem: function () {
+      this.newItem.img = this.itemImage
       this.$store.dispatch('ADD_STOCK', this.newItem)
-      this.tempStock = this.temStock
     },
     addUser: function () {
       this.$store.dispatch('ADD_USER', { name: this.name, email: this.address, role: this.role, pword: this.pword })
@@ -253,24 +251,24 @@ export default {
     },
     removeItem: function (id) {
       this.$store.dispatch('DELETE_STOCK', id)
-      this.tempStock = this.temStock
     },
     removeStaff: function (id) {
       this.$store.dispatch('DELETE_STAFF', id)
-      this.tempStaff = this.temStaff
     },
     fetchStaffRecords: function (num) {
-      this.$store.dispatch('STAFF_SALES', num)
-      this.staffSales = this.$store.getters.STAFF_SALES
+      this.staffSales = this.$store.getters.STAFF_SALES(num)
     },
     fetchItemSales: function (item) {
-      this.$store.dispatch('ITEM_SALES', item)
-      this.itemSales = this.$store.getters.ITEM_SALES
+      this.itemSales = this.$store.getters.ITEM_SALES(item)
+    },
+    loadAll: function () {
+      this.$store.dispatch('LOAD_STAFF')
+      this.$store.dispatch('LOAD_STOCK')
+      this.$store.dispatch('LOAD_SALES')
     }
   },
   mounted: function () {
-    this.tempStaff = this.temStaff
-    this.tempStock = this.temStock
+    this.loadAll()
   }
 }
 </script>
