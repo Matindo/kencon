@@ -15,7 +15,7 @@
                         <b-card-header header-class="header">
                           <b-row>
                             <b-col class="w-40">
-                              <img :src="require(`../assets/${spec.img}.png`)" :img-alt="spec.name" style="height: 8rem; width: 8rem;">
+                              <img :src="spec.img" :img-alt="spec.name" style="height: 8rem; width: 8rem;">
                             </b-col>
                             <b-col class="w-60">
                               <h5>{{spec.name}}</h5>
@@ -53,11 +53,12 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
   data: function () {
     return {
       cart: [],
-      tempStock: [],
       quantity: 0,
       runningTotal: 0
     }
@@ -71,32 +72,32 @@ export default {
           var tot = item.price * this.quantity
           this.runningTotal += tot
           this.cart.push({ item: item.name, unitPrice: item.price, quantity: this.quantity, total: tot })
-          this.tempStock[i].quantity -= this.quantity
         }
       }
       this.quantity = 0
     },
     processCart: function () {
       this.$store.dispatch('ADD_SALE', this.cart)
-      for (var i = 0; i < this.tempStock.length; i++) {
-        var tempItem = this.tempStock[i]
-        this.$store.dispatch('UPDATE_STOCK', tempItem)
+      for (var i = 0; i < this.cart.length; i++) {
+        for (var j = 0; j < this.tempStock.length; j++) {
+          if (this.cart[i].item === this.tempStock[j].name) {
+            this.tempStock[j].quantity -= this.cart[i].quantity
+            this.$store.dispatch('UPDATE_STOCK', this.tempStock[j])
+          }
+        }
       }
-      this.$store.dispatch('LOAD_STOCK')
-      this.stock()
-      this.tempStock = this.$store.getters.STOCK
       this.cart.splice(0, this.cart.length)
       // print receipt
     }
   },
   computed: {
-    stock: function () {
-      return this.$store.getters.DISPLAY_STOCK
-    }
+    ...mapGetters({
+      stock: 'DISPLAY_STOCK',
+      tempStock: 'STOCK'
+    })
   },
   mounted: function () {
     this.$store.dispatch('LOAD_STOCK')
-    this.tempStock = this.$store.getters.STOCK
   }
 }
 </script>

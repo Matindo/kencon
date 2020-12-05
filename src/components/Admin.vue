@@ -16,7 +16,7 @@
                             <b-card-header header-tag="header" class="p-1" role="tab">
                               <b-row class="w-100">
                                 <b-col class="w-40">
-                                  <img :src="require(`../assets/${item.img}.png`)" style="height: 8rem; width: 8rem;">
+                                  <img :src="item.img" style="height: 8rem; width: 8rem;">
                                 </b-col>
                                 <b-col class="w-60 accordion" id="accordion2" role="tablist">
                                   <h4>{{ item.name }}</h4>
@@ -76,7 +76,7 @@
                         <b-card-header header-class="header">
                           <b-row>
                             <b-col class="w-40">
-                              <img :src="require(`../assets/avatars/${salesperson.img}.png`)" style="height: 8rem; width: 8rem;">
+                              <img :src="salesperson.img" style="height: 8rem; width: 8rem;">
                             </b-col>
                             <b-col class="w-60">
                               <h5>{{salesperson.oname}}, {{salesperson.fname}}</h5>
@@ -192,7 +192,7 @@ export default {
       for (var i = 0; i < this.tempStock.length; i++) {
         if (this.tempStock[i].id === id) {
           var currentItem = this.tempStock[i]
-          currentItem.quantity += Number(this.stockInfluence)
+          currentItem.quantity += parseFloat(this.stockInfluence)
           this.$store.dispatch('UPDATE_STOCK', currentItem)
           this.stockInfluence = 0
         }
@@ -212,7 +212,7 @@ export default {
       for (var i = 0; i < this.staff[index].employees.length; i++) {
         if (this.staff[index].employees[i].num === id) {
           var sp = this.staff[index].employees[i]
-          sp.img = this.staffImage
+          if (this.staffImage) { sp.img = this.staffImage }
           this.$store.dispatch('UPDATE_STAFF', sp)
         }
       }

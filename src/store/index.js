@@ -60,7 +60,7 @@ const store = new Vuex.Store({
 
   mutations: {
     LOAD_STOCK: function (state) {
-      axios.get('./api/Stock.php/action=read').then(function (response) {
+      axios.get('./api/Stock.php?action=read').then(function (response) {
         state.stock = response.data.stock
       })
     },
@@ -75,61 +75,48 @@ const store = new Vuex.Store({
       })
     },
     CATEGORIZE_STOCK: function (state) {
+      state.displayStock.splice(0, state.displayStock.length)
       var stock = state.stock
-      var displayStock = []
-      function categorize (arr) {
-        var cat = arr[0].category
-        var catArr = null
-        for (var i = 0; i < arr.length; i++) {
-          if (arr[i].category === cat) {
-            catArr.push(arr[i])
-            arr.splice(i, 1)
-          }
-        }
-        return { category: cat, subcat: catArr }
-      }
-      function subCategorize (arr) {
-        var subCat = arr[0].sub_category
-        var subCatArr = null
-        for (var i = 0; i < arr.length; i++) {
-          if (arr[i].sub_category === subCat) {
-            subCatArr.push(arr[i])
-            arr.splice(i, 1)
-          }
-        }
-        return { subcategory: subCat, list: subCatArr }
-      }
+      var innerList = []
       while (stock.length > 0) {
-        var catIndex = 0
-        var tempCatStock = categorize(stock)
-        displayStock.push({ category: tempCatStock.category, subcat: [] })
-        while (tempCatStock.subcat.length > 0) {
-          var tempSubCatStock = subCategorize(tempCatStock.subcat)
-          displayStock[catIndex].subcat.push({ subcategory: tempSubCatStock.subcategory, list: tempSubCatStock.list })
+        var cat = stock[0].category
+        var catArray = []
+        for (var i = 0; i < stock.length; i++) {
+          if (stock[i].category === cat) {
+            catArray.push(stock[i])
+          }
         }
-        catIndex += 1
+        while (catArray.length > 0) {
+          var subcat = catArray[0].sub_category
+          var subcatArray = []
+          for (var j = 0; j < catArray.length; j++) {
+            if (catArray[j].sub_category === subcat) {
+              subcatArray.push(catArray[j])
+            }
+          }
+          innerList.push({ subcategory: subcat, list: subcatArray })
+          catArray = catArray.filter(item => !item.sub_category.includes(subcat))
+        }
+        state.displayStock.push({ category: cat, subcat: innerList })
+        stock = stock.filter(({ category }) => !category.includes(cat))
       }
-      state.displayStock = displayStock
+      console.log(state.displayStock)
     },
     CATEGORIZE_EMPLOYEES: function (state) {
+      state.displayStaff.splice(0, state.displayStaff.length)
       var staff = state.staff
-      var displayStaff = []
-      function categorize (arr) {
-        var off = arr[0].office
-        var officeArr = null
-        for (var i = 0; i < arr.length; i++) {
-          if (arr[i].office === off) {
-            officeArr.push(arr[i])
-            arr.splice(i, 1)
+      while (staff.length > 0) {
+        var off = staff[0].office
+        var officeArr = []
+        for (var i = 0; i < staff.length; i++) {
+          if (staff[i].office === off) {
+            officeArr.push(staff[i])
           }
         }
-        return { office: off, employees: officeArr }
+        state.displayStaff.push({ office: off, employees: officeArr })
+        staff = staff.filter(({ office }) => !office.includes(off))
       }
-      while (staff.length > 0) {
-        var tempOffice = categorize(staff)
-        displayStaff.push({ office: tempOffice.office, employees: tempOffice.employees })
-      }
-      state.displayStaff = displayStaff
+      console.log(state.displayStaff)
     },
     SIGN_IN: function (state, payload) {
       const formData = new FormData()
@@ -192,7 +179,7 @@ const store = new Vuex.Store({
       formData.append('idNo', payload.idNo)
       formData.append('fname', payload.fname)
       formData.append('oname', payload.oname)
-      formData.append('address', payload.address)
+      formData.append('address', payload.email)
       formData.append('phone', payload.phone)
       formData.append('office', payload.office)
       formData.append('img', payload.img)
@@ -228,7 +215,7 @@ const store = new Vuex.Store({
       formData.append('idNo', payload.idNo)
       formData.append('fname', payload.fname)
       formData.append('oname', payload.oname)
-      formData.append('address', payload.address)
+      formData.append('address', payload.email)
       formData.append('phone', payload.phone)
       formData.append('office', payload.office)
       formData.append('img', payload.img)
@@ -325,26 +312,34 @@ const store = new Vuex.Store({
     },
     ADD_STOCK: function (context, item) {
       context.commit('ADD_STOCK', item)
+      context.commit('LOAD_STOCK')
+      context.commit('CATEGORIZE_STOCK')
     },
     ADD_STAFF: function (context, person) {
       context.commit('ADD_STAFF', person)
+      context.commit('LOAD_STAFF')
+      context.commit('CATEGORIZE_EMPLOYEES')
     },
     LOAD_SALES: function (context) {
       context.commit('LOAD_SALES')
     },
     LOAD_STAFF: function (context) {
       context.commit('LOAD_STAFF')
+      context.commit('CATEGORIZE_EMPLOYEES')
     },
     LOAD_STOCK: function (context) {
       context.commit('LOAD_STOCK')
+      context.commit('CATEGORIZE_STOCK')
     },
     DELETE_STOCK: function (context, id) {
       context.commit('DELETE_STOCK', id)
       context.commit('LOAD_STOCK')
+      context.commit('CATEGORIZE_STOCK')
     },
     DELETE_STAFF: function (context, id) {
       context.commit('DELETE_STAFF', id)
       context.commit('LOAD_STAFF')
+      context.commit('CATEGORIZE_EMPLOYEES')
     }
   },
 

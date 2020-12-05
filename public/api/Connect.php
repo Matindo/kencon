@@ -2,8 +2,8 @@
 /** Connect api **/
 
 $host = "localhost"; 
-$user = "root"; 
-$password = "BySonic98"; 
+$user = "essaybud_essaybud"; 
+$password = "su@localz0n3"; 
 $dbname = "essaybud_Kencon";
 
 $conn = new mysqli($host, $user, $password, $dbname);

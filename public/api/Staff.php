@@ -17,23 +17,23 @@ if (isset($_GET['action'])) {
     $result['staff'] = $staff;
   }
   if ($action == 'create') {
-    $fname = mysqli_real_escape_string($conn, $_POST["fname"]);
-    $oname = mysqli_real_escape_string($conn, $_POST["oname"]);
-    $address = mysqli_real_escape_string($conn, $_POST["email"]);
-    $status = mysqli_real_escape_string($conn, $_POST["status"]);
-    $idNo = mysqli_real_escape_string($conn, $_POST["idNo"]);
-    $phone = mysqli_real_escape_string($conn, $_POST["phone"]);
-    $office = mysqli_real_escape_string($conn, $_POST["office"]);
+    $fname = $_POST["fname"];
+    $oname = $_POST["oname"];
+    $address = $_POST["address"];
+    $status = $_POST["status"];
+    $idNo = $_POST["idNo"];
+    $phone = $_POST["phone"];
+    $office = $_POST["office"];
     $upload_dir = '../assets/staff/';
-    $upload_file = $upload_dir . basename($_FILES["userimg"]["name"]);
-    if (move_uploaded_file($_FILES["userimg"]["tmp_name"], $upload_file)) {
+    $upload_file = $upload_dir . basename($_FILES["img"]["name"]);
+    if (move_uploaded_file($_FILES["img"]["tmp_name"], $upload_file)) {
       $img = $upload_file;
       $sql = $conn->query("INSERT INTO Kencon_staff(fname, oname, email, status, idNo, phone, img, office) VALUES ('$fname', '$oname', '$address', '$status', $idNo, '$phone', '$img', '$office')");
       if($sql){
         $result['message'] = "Member $oname added successfully!";
       } else {
         $result['error'] = true;
-        $result['message'] = "Failed to add new user $oname!";
+        $result['message'] = "Failed to add new user $oname!".$conn->error;
       }
     } else {
       $result['error'] = true;
@@ -41,23 +41,23 @@ if (isset($_GET['action'])) {
     }
   }
   if ($action == 'update') {
-    $id = mysqli_real_escape_string($conn, $_POST['id']);
-    $oname = mysqli_real_escape_string($conn, $_POST["oname"]);
-    $address = mysqli_real_escape_string($conn, $_POST["email"]);
-    $status = mysqli_real_escape_string($conn, $_POST["status"]);
-    $idNo = mysqli_real_escape_string($conn, $_POST["idNo"]);
-    $phone = mysqli_real_escape_string($conn, $_POST["phone"]);
-    $office = mysqli_real_escape_string($conn, $_POST["office"]);
+    $id = $_POST['id'];
+    $oname = $_POST["oname"];
+    $address = $_POST["address"];
+    $status = $_POST["status"];
+    $idNo = $_POST["idNo"];
+    $phone = $_POST["phone"];
+    $office = $_POST["office"];
     $upload_dir = '../assets/staff/';
-    $upload_file = $upload_dir . basename($_FILES["userimg"]["name"]);
-    if (move_uploaded_file($_FILES["userimg"]["tmp_name"], $upload_file)) {
+    $upload_file = $upload_dir . basename($_FILES["img"]["name"]);
+    if (move_uploaded_file($_FILES["img"]["tmp_name"], $upload_file)) {
       $img = $upload_file;
       $sql = $conn->query("UPDATE Kencon_staff SET fname='$fname', oname='$oname', email='$address', status='$status', idNo='$idNo', phone='$phone', img='$img', office='$office' WHERE id='$id'");
       if($sql){
         $result['message'] = "Member $oname updated successfully!";
       } else {
         $result['error'] = true;
-        $result['message'] = "Failed to update $oname!";
+        $result['message'] = "Failed to update $oname!".$conn->error;
       }
     } else {
       $result['error'] = true;
@@ -65,7 +65,7 @@ if (isset($_GET['action'])) {
     }
   }
   if ($action == 'delete') {
-    $id = mysqli_real_escape_string($conn, $_POST['id']);
+    $id = $_POST['id'];
     $sql = $conn->query("DELETE FROM  Kencon_staff where id='$id'");
     if($sql){
       $result['message'] = "Member deleted successfully!";

@@ -17,10 +17,10 @@ if (isset($_GET['action'])) {
     $result['sales'] = $sales;
   }
   if ($action == 'create') {
-    $item = mysqli_real_escape_string($conn, $_POST['item']);
-    $salesperson = mysqli_real_escape_string($conn, $_POST['salesperson']);
-    $quantity = mysqli_real_escape_string($conn, $_POST['quantity']);
-    $price = mysqli_real_escape_string($conn, $_POST['price']);
+    $item = $_POST['item'];
+    $salesperson = $_POST['salesperson'];
+    $quantity = $_POST['quantity'];
+    $price = $_POST['price'];
     $sql = $conn->query("INSERT INTO Kencon_sales(item, salesperson, quantity, price, datestamp) VALUES ('$item', '$salesperson', $quantity, $price)");
     if($sql){
       $result['message'] = "Sale added successfully!";
@@ -30,7 +30,7 @@ if (isset($_GET['action'])) {
     }
   }
   if ($action == 'delete') {
-    $id = mysqli_real_escape_string($conn, $_POST['id']);
+    $id = $_POST['id'];
     $sql = $conn->query("DELETE FROM  Kencon_sales where id='$id'");
     if($sql){
       $result['message'] = "Sale deleted successfully!";

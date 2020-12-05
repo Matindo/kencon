@@ -17,44 +17,49 @@ if (isset($_GET['action'])) {
     $result['stock'] = $stock;
   }
   if ($action == 'create') {
-    $name = mysqli_real_escape_string($conn, $_POST["name"]);
-    $quantity = mysqli_real_escape_string($conn, $_POST["quantity"]);
-    $price = mysqli_real_escape_string($conn, $_POST["price"]);
-    $category = mysqli_real_escape_string($conn, $_POST["category"]);
-    $subcat = mysqli_real_escape_string($conn, $_POST["subcat"]);
+    $name = $_POST["name"];
+    $quantity = $_POST["quantity"];
+    $price = $_POST["price"];
+    $category = $_POST["category"];
+    $subcat = $_POST["subcategory"];
     $upload_dir = '../assets/stock/';
-    $upload_file = $upload_dir . basename($_FILES["userimg"]["name"]);
-    if (move_uploaded_file($_FILES["userimg"]["tmp_name"], $upload_file)) {
-      $img = $upload_file;
-      $sql = $conn->query("INSERT INTO Kencon_stock(name, quantity, price, category, subcategory, img) VALUES ('$name', '$quantity', '$price', '$category', '$subcat', '$img')");
-      if($sql){
-        $result['message'] = "New item $name added successfully!";
+    if(is_uploaded_file($_FILES["img"]["tmp_name"])){
+      $upload_file = $upload_dir . basename($_FILES["img"]["name"]);
+      if(move_uploaded_file($_FILES["img"]["tmp_name"], $upload_file)) {
+        $img = $upload_file;
+        $sql = $conn->query("INSERT INTO Kencon_stock(name, quantity, price, category, sub_category, img) VALUES ('$name', '$quantity', '$price', '$category', '$subcat', '$img')");
+        if($sql){
+          $result['message'] = "New item $name added successfully!";
+        } else {
+          $result['error'] = true;
+          $result['message'] = "Failed to add new item $name!".$conn->error;
+        }
       } else {
         $result['error'] = true;
-        $result['message'] = "Failed to add new item $name!";
+        $result['message'] = "Failed to add image to local storage!";
       }
     } else {
       $result['error'] = true;
-      $result['message'] = "Failed to add image to local storage!";
+      $result['message'] = "No file to upload!";
     }
   }
   if ($action == 'update') {
-    $id = mysqli_real_escape_string($conn, $_POST['id']);
-    $name = mysqli_real_escape_string($conn, $_POST["name"]);
-    $quantity = mysqli_real_escape_string($conn, $_POST["quantity"]);
-    $price = mysqli_real_escape_string($conn, $_POST["price"]);
-    $category = mysqli_real_escape_string($conn, $_POST["category"]);
-    $subcat = mysqli_real_escape_string($conn, $_POST["subcat"]);
+    $id = $_POST['id'];
+    $name = $_POST["name"];
+    $quantity = $_POST["quantity"];
+    $price = $_POST["price"];
+    $category = $_POST["category"];
+    $subcat = $_POST["subcategory"];
     $upload_dir = '../assets/stock/';
-    $upload_file = $upload_dir . basename($_FILES["userimg"]["name"]);
-    if (move_uploaded_file($_FILES["userimg"]["tmp_name"], $upload_file)) {
+    $upload_file = $upload_dir . basename($_FILES["img"]["name"]);
+    if (move_uploaded_file($_FILES["img"]["tmp_name"], $upload_file)) {
       $img = $upload_file;
-      $sql = $conn->query("UPDATE Kencon_stock SET name='$name', quantity='$quantity', price='$price', category='$category', subcategory='$subcat', img='$img' WHERE id='$id'");
+      $sql = $conn->query("UPDATE Kencon_stock SET name='$name', quantity='$quantity', price='$price', category='$category', sub_category='$subcat', img='$img' WHERE id='$id'");
       if($sql){
         $result['message'] = "Item $name updated successfully!";
       } else {
         $result['error'] = true;
-        $result['message'] = "Failed to update $name!";
+        $result['message'] = "Failed to update $name!".$conn->error;
       }
     } else {
       $result['error'] = true;
@@ -62,7 +67,7 @@ if (isset($_GET['action'])) {
     }
   }
   if ($action == 'delete') {
-    $id = mysqli_real_escape_string($conn, $_POST['id']);
+    $id = $_POST['id'];
     $sql = $conn->query("DELETE FROM  Kencon_stock where id='$id'");
     if($sql){
       $result['message'] = "Item deleted successfully!";
