@@ -1,31 +1,37 @@
 <template>
   <div>
-    <Cashier v-if="currentUser.role === 'Cashier'"></Cashier>
-    <Admin v-if="currentUser.role === 'Admin'"></Admin>
+    <Terminal v-if="currentUser.role === 'Cashier'" />
+    <Admin v-if="currentUser.role === 'Admin'" />
     <b-button block variant="danger" @click="exit">Sign Out</b-button>
   </div>
 </template>
 
 <script>
 import Admin from '@/components/Admin.vue'
-import Cashier from '@/components/Cashier.vue'
+import Terminal from '@/components/Terminal.vue'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'User',
-  components: { Admin, Cashier },
+  components: { Admin, Terminal },
   data: function () {
     return {
     }
   },
   computed: {
-    currentUser: function () {
-      return this.$store.getters.CURRENT_USER
-    }
+    ...mapGetters({
+      currentUser: 'CURRENT_USER'
+    })
   },
   methods: {
     exit: function () {
       this.$store.dispatch('RESET')
-      this.$router.push('/')
+      this.$router.push({ name: 'Home' })
+    }
+  },
+  mounted: function () {
+    if (this.currentUser === null) {
+      this.$router.push({ name: 'Home' })
     }
   }
 }

@@ -1,103 +1,140 @@
 <template>
-  <b-container fluid>
-    <b-row fluid align-v="stretch" align-h="start">
-      <b-col cols="8">
-        <h3 center>Items</h3>
-        <b-card no-body class="w-100">
-          <b-tabs pills card vertical active-nav-item-class="font-weight-bold text-uppercase">
-            <b-tab v-for="(item, index1) in stock" :key="index1" :title="item.category">
-              <b-card no-body class="w-100">
-                <h4>{{item.category}}</h4>
-                <b-tabs card content-class="mt-3" justified>
-                  <b-tab v-for="(sub, index2) in item.subcat" :key="index2" :title="sub.subcategory">
-                    <b-card-text>
-                      <b-card class="accordion" id="my-accordion" role="tablist" v-for="(spec, index3) in sub.list" :key="index3">
-                        <b-card-header header-class="header">
-                          <b-row>
-                            <b-col class="w-40">
-                              <img :src="spec.img" :img-alt="spec.name" style="height: 8rem; width: 8rem;">
-                            </b-col>
-                            <b-col class="w-60">
-                              <h5>{{spec.name}}</h5>
-                              <p>In Stock: {{spec.quantity}}<br>Price: {{spec.price}}</p>
-                              <b-button block variant="warning" v-b-toggle.collapse-buy>Purchase</b-button>
-                              <b-collapse id="collapse-buy">
-                                <b-form>
-                                  <b-form-group>
-                                    <label for="quantity">Units to Buy:</label><b-input id="quantity" type="number" v-model="quantity" placeholder="0"></b-input>
-                                    <b-form-text v-show="quantity > spec.quantity">Your order is more than remaining stock quantity</b-form-text>
-                                  </b-form-group>
-                                  <b-button block v-if="quantity <= spec.quantity" :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-buy" @click="buyItem(spec.id)" variant="success">Add to Cart</b-button>
-                                </b-form>
-                              </b-collapse>
-                            </b-col>
-                          </b-row>
-                        </b-card-header>
-                      </b-card>
-                    </b-card-text>
-                  </b-tab>
-                </b-tabs>
-              </b-card>
-            </b-tab>
-          </b-tabs>
-        </b-card>
-      </b-col>
-      <b-col cols="4">
-        <h3 center>Checkout</h3>
-        <b-table responsive stripped sticky-header :items="cart"></b-table>
-        <p center>Total: Ksh. {{ this.runningTotal }}</p>
-        <b-button block variant="warning" @click="processCart()">CHECK-OUT</b-button>
-      </b-col>
-    </b-row>
-  </b-container>
+  <b-card>
+    <b-card-header header-class="header">
+      <b-container fluid>
+        <b-row>
+          <b-col class="w-40">
+            <img :src="salesperson.img" style="height: 8rem; width: 8rem;">
+          </b-col>
+          <b-col class="w-60">
+            <h5>{{salesperson.fName}} {{salesperson.oName}}</h5>
+            <p>Work Status: {{ salesperson.status }}</p>
+            <b-button v-b-modal="modal-edit" variant="primary">Edit Staff Details</b-button>
+            <b-button variant="danger" @click="deleteStaff">Delete Staff</b-button>
+            <b-button block v-b-toggle="'accordion' + salesperson.idNo" variant="secondary" @click="fetchRecords">View Sales Records</b-button>
+          </b-col>
+        </b-row>
+      </b-container>
+    </b-card-header>
+    <b-collapse :id="'accordion' + salesperson.idNo">
+      <h5>Employee {{ salesperson.num }}'s Sales</h5>
+      <b-button class="float-right" variant="primary" @click="fetchRecords">Refresh Records</b-button>
+      <b-table responsive stripped sticky-header :items="staffSales"></b-table>
+    </b-collapse>
+    <b-modal id="modal-edit" ref="modal" title="Edit Staff Details" @ok="handleOk">
+      <form ref="form" @submit="handleSubmit">
+        <b-form-group label="First Name" label-for="1name" invalid-feedback="First Name is required" :state="Boolean(salesperson.fName)">
+          <b-form-input v-model="salesperson.fName" :state="Boolean(salesperson.fName)" id="1name" required></b-form-input>
+        </b-form-group>
+        <b-form-group label="Other Name(s):" label-for="2name" :state="Boolean(salesperson.oName)" invalid-feedback="Other Name(s) are required">
+          <b-form-input v-model="salesperson.oName" id="2name" :state="Boolean(salesperson.oName)" required></b-form-input>
+        </b-form-group>
+        <b-form-group label="ID" :state="Boolean(salesperson.idNo)" label-for="idn" invalid-feedback="ID is required">
+          <b-form-input v-model="salesperson.idNo" id="idn" :state="Boolean(salesperson.idNo)" required></b-form-input>
+        </b-form-group>
+        <b-form-group label="E-mail" :state="Boolean(salesperson.email)" label-for="mail" invalid-feedback="Valid e-mail is required">
+          <b-form-input v-model="salesperson.email" id="mail" :state="Boolean(salesperson.email)" type="e-mail" required></b-form-input>
+        </b-form-group>
+        <b-form-group label="Mobile No." :state="Boolean(salesperson.phone)" label-for="phone" invalid-feedback=" Valid mobile number is required">
+          <b-form-input v-model="salesperson.phone" id="phone" :state="Boolean(salesperson.phone)" type="telephone" required></b-form-input>
+        </b-form-group>
+        <b-form-group label="Work Status" :state="Boolean(salesperson.status)" label-for="status" invalid-feedback="Work Status is required">
+          <b-form-select v-model="salesperson.status" id="status" :options="statusOptions" :state="Boolean(salesperson.status)"></b-form-select>
+        </b-form-group>
+        <b-form-group label="Office" :state="Boolean(salesperson.office)" label-for="office" invalid-feedback="Office is required">
+          <b-form-input v-model="salesperson.office" id="office" :state="Boolean(salesperson.office)" required></b-form-input>
+        </b-form-group>
+      </form>
+    </b-modal>
+  </b-card>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import axios from 'axios'
+import moment from 'moment'
 
 export default {
+  name: 'Cashier',
+  props: ['salesperson'],
   data: function () {
     return {
-      cart: [],
-      quantity: 0,
-      runningTotal: 0
+      staffSales: null
+    }
+  },
+  filters: {
+    formatDate: function (value) {
+      if (value) {
+        return moment(String(value)).format('lll')
+      }
     }
   },
   methods: {
-    buyItem: function (id) {
-      var item = null
-      for (var i = 0; i < this.tempStock.length; i++) {
-        if (this.tempStock[i].id === id) {
-          item = this.tempStock[i]
-          var tot = item.price * this.quantity
-          this.runningTotal += tot
-          this.cart.push({ item: item.name, unitPrice: item.price, quantity: this.quantity, total: tot })
-        }
-      }
-      this.quantity = 0
+    checkFormValidity: function () {
+      return this.$refs.form.checkValidity()
     },
-    processCart: function () {
-      this.$store.dispatch('ADD_SALE', this.cart)
-      for (var i = 0; i < this.cart.length; i++) {
-        for (var j = 0; j < this.tempStock.length; j++) {
-          if (this.cart[i].item === this.tempStock[j].name) {
-            this.tempStock[j].quantity -= this.cart[i].quantity
-            this.$store.dispatch('UPDATE_STOCK', this.tempStock[j])
-          }
-        }
+    handleOk: function (bvModalEvt) {
+      bvModalEvt.preventDefault()
+      this.handleSubmit()
+    },
+    handleSubmit: function () {
+      if (!this.checkFormValidity) {
+        return
       }
-      this.cart.splice(0, this.cart.length)
-      // print receipt
+      this.editSalesperson()
+    },
+    editSalesperson: function () {
+      const formData = new FormData()
+      formData.append('id', this.salesperson.num)
+      formData.append('idNo', this.salesperson.idNo)
+      formData.append('fname', this.salesperson.fName)
+      formData.append('oname', this.salesperson.oName)
+      formData.append('address', this.salesperson.email)
+      formData.append('phone', this.salesperson.phone)
+      formData.append('office', this.salesperson.office)
+      formData.append('status', this.salesperson.status)
+      axios({
+        method: 'post',
+        url: './api/Staff.php?action=update',
+        data: formData,
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }).then((response) => {
+        this.$store.dispatch('SET_RESPONSE', { error: response.data.error, message: response.data.message })
+        this.$store.dispatch('LOAD_STAFF')
+      })
+      this.$store.dispatch('SET_ROUTE', 'User')
+      this.$router.push({ name: 'Loader' })
+    },
+    fetchRecords: function () {
+      this.staffSales = null
+      var sales = this.$store.getters.STAFF_SALES(this.salesperson.fName)
+      for (var i = 0; i < sales.length; i++) {
+        sales[i].time = this.$options.filters.formatDate(sales[i].time)
+      }
+      this.staffSales = sales
+    },
+    deleteStaff: function () {
+      this.$bvModal.msgBoxConfirm('Are you sure you want to delete ' + this.salesperson.fName + ' permanently?', {
+        title: 'Delete Staff Member',
+        okVariant: 'danger',
+        okTitle: 'YES',
+        cancelTitle: 'NO',
+        footerClass: 'p-2 center text-center',
+        centered: true
+      }).then(value => {
+        if (value) {
+          const formData = new FormData()
+          formData.append('id', this.salesperson.id)
+          axios({
+            method: 'post',
+            url: './api/Staff.php?action=delete',
+            data: formData
+          }).then((response) => {
+            this.$store.dispatch('SET_RESPONSE', { error: response.data.error, message: response.data.message })
+            this.$router.push({ name: 'Loader' })
+          })
+        }
+      })
     }
-  },
-  computed: {
-    ...mapGetters({
-      stock: 'DISPLAY_STOCK',
-      tempStock: 'STOCK'
-    })
-  },
-  mounted: function () {
-    this.$store.dispatch('LOAD_STOCK')
   }
 }
 </script>
