@@ -1,7 +1,5 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import axios from 'axios'
-import moment from 'moment'
 
 Vue.use(Vuex)
 
@@ -90,10 +88,10 @@ const store = new Vuex.Store({
     CATEGORIZE_STOCK: function (state) {
       state.displayStock.splice(0, state.displayStock.length)
       var stock = state.stock
-      var innerList = []
       while (stock.length > 0) {
         var cat = stock[0].category
         var catArray = []
+        var innerList = []
         for (var i = 0; i < stock.length; i++) {
           if (stock[i].category === cat) {
             catArray.push(stock[i])
@@ -111,7 +109,7 @@ const store = new Vuex.Store({
           catArray = catArray.filter(item => !item.sub_category.includes(subcat))
         }
         state.displayStock.push({ category: cat, subcat: innerList })
-        stock = stock.filter(({ category }) => !category.includes(cat))
+        stock = stock.filter(item => !item.category.includes(cat))
       }
     },
     CATEGORIZE_EMPLOYEES: function (state) {
@@ -131,7 +129,7 @@ const store = new Vuex.Store({
     },
     RESET_DETAILS: function (state) {
       state.currentUser = null
-      state.message = ''
+      state.message = null
       state.isError = false
     }
   },

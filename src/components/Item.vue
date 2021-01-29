@@ -5,32 +5,65 @@
         <b-col class="w-40">
           <img :src="item.img" style="height: 8rem; width: 8rem;">
         </b-col>
-        <b-col class="w-60 accordion">
+        <b-col class="w-60">
           <h4>{{ item.name }}</h4>
           <p>In Stock: {{ item.quantity }}</p>
-          <b-button block v-b-modal="modal-add" variant="success">Add To Stock</b-button>
-          <b-modal ref="modal" id="modal-add" @ok="handleAddOk" title="Add Stock">
-            <form ref="form" @submit.stop.prevent="handleAddSubmit">
-              <b-form-group label="Quantity" :state="Boolean(stockInfluence)" label-for="addition" invalid-feedback="Quantity is required">
+          <b-button v-b-modal="'modal-add' + item.name" variant="success">Add To Stock</b-button>
+          <b-modal :id="'modal-add' + item.name" hide-header hide-footer>
+            <b-form>
+              <b-form-group label="Quantity To Add:" :state="Boolean(stockInfluence)" label-for="addition" invalid-feedback="Quantity is required">
                 <b-form-input v-model="stockInfluence" id="addition" :state="Boolean(stockInfluence)" type="number" required></b-form-input>
               </b-form-group>
-            </form>
+            </b-form>
+            <div class="text-center mt-2">
+              <b-button variant="secondary" class="m-3" @click="$bvModal.hide('modal-add' + item.name)">Cancel</b-button>
+              <b-button variant="primary" class="m-3" @click="addStock">Add Stock</b-button>
+            </div>
           </b-modal>
-          <b-button variant="danger" v-b-modal="modal-remove">Remove from Stock</b-button>
-          <b-modal ref="modal" id="modal-remove" @ok="handleRemOk" title="Deduct Stock">
-            <form ref="form" @submit.stop.prevent="handleRemSubmit">
-              <b-form-group label="Quantity" :state="Boolean(stockInfluence)" label-for="removal" invalid-feedback="Quantity is required">
+          <b-button variant="danger" v-b-modal="'modal-rem' + item.name">Reduce Stock</b-button>
+          <b-modal :id="'modal-rem' + item.name" hide-header hide-footer>
+            <b-form>
+              <b-form-group label="Quantity To Deduct" :state="Boolean(stockInfluence)" label-for="removal" invalid-feedback="Quantity is required">
                 <b-form-input v-model="stockInfluence" id="removal" :state="Boolean(stockInfluence)" type="number" required></b-form-input>
                 <b-form-text v-show="stockInfluence > item.quantity">Your deduction is more than the available stock</b-form-text>
               </b-form-group>
-            </form>                                                       </b-modal>
-          <b-button v-b-toggle="'collapse-trend' + item.name" variant="info" @click="fetchItemSales">View Stock Trends</b-button>
+            </b-form>
+            <div class="text-center mt-2">
+              <b-button variant="secondary" class="m-3" @click="$bvModal.hide('modal-rem' + item.name)">Cancel</b-button>
+              <b-button variant="primary" class="m-3" @click="reduceStock" :disabled="stockInfluence > item.quantity">Remove From Stock</b-button>
+            </div>
+          </b-modal>
+          <b-button block variant="secondary" v-b-modal="'modalEdit' + item.name">Edit Item</b-button>
+          <b-modal :id="'modalEdit' + item.name" title="Edit Item Details" hide-footer>
+            <b-form>
+              <b-form-group label="Item Name" label-for="name" :state="Boolean(item.name)" invalid-feedback="Item Name is required">
+                <b-form-input v-model="item.name" id="name" :state="Boolean(item.name)" required></b-form-input>
+              </b-form-group>
+              <b-form-group label="Quantity" label-for="quantity" :state="Boolean(item.quantity)" invalid-feedback="Quantity is required">
+                <b-form-input v-model="item.quantity" id="quantity" :state="Boolean(item.quantity)" type="number" required></b-form-input>
+              </b-form-group>
+              <b-form-group label="Price" label-for="price" :state="Boolean(item.price)" invalid-feedback="Price is required">
+                <b-form-input v-model="item.price" id="price" :state="Boolean(item.price)" type="number" required></b-form-input>
+              </b-form-group>
+              <b-form-group label-for="cat" label="Category" :state="Boolean(item.category)" invalid-feedback="Category is required">
+                <b-form-input v-model="item.category" id="cat" :state="Boolean(item.category)" required></b-form-input>
+              </b-form-group>
+              <b-form-group label-for="subCat" label="Sub-category" :state="Boolean(item.subcategory)" invalid-feedback="Subcategory is required">
+                <b-form-input v-model="item.subcategory" id="subCat" :state="Boolean(item.subcategory)" required></b-form-input>
+              </b-form-group>
+            </b-form>
+            <div class="text-center mt-2">
+              <b-button variant="secondary" class="m-3" @click="$bvModal.hide('modalEdit' + item.name)">Cancel</b-button>
+              <b-button variant="primary" class="m-3" @click="editItem">Edit Item</b-button>
+            </div>
+          </b-modal>
+          <b-button block v-b-toggle="'collapse-trend' + item.name" variant="info" @click="fetchItemSales(item)">View Stock Trends</b-button>
         </b-col>
       </b-row>
     </b-card-header>
     <b-collapse :id="'collapse-trend' + item.name">
       <h5>{{item.name}} Sales</h5>
-      <b-button class="float-right" variant="info" @click="fetchItemSales">Refresh Records</b-button>
+      <b-button class="float-right" variant="info" @click="fetchItemSales(item)">Refresh Records</b-button>
       <b-table responsive stripped sticky-header :items="itemSales"></b-table>
     </b-collapse>
   </b-card>
@@ -38,50 +71,17 @@
 
 <script>
 import axios from 'axios'
-import moment from 'moment'
 
 export default {
   name: 'Item',
-  props: {
-    item: Object
-  },
+  props: ['item'],
   data: function () {
     return {
-      stockInfluence: 0,
-      itemSales: []
-    }
-  },
-  filters: {
-    formatDate: function (value) {
-      if (value) {
-        return moment(String(value)).format('lll')
-      }
+      itemSales: [],
+      stockInfluence: 0
     }
   },
   methods: {
-    checkFormValidity: function () {
-      return this.$refs.form.checkValidity()
-    },
-    handleAddOk: function (bvModalEvt) {
-      bvModalEvt.preventDefault()
-      this.handleSubmit()
-    },
-    handleAddSubmit: function () {
-      if (!this.checkFormValidity) {
-        return
-      }
-      this.addStock()
-    },
-    handleRemOk: function (bvModalEvt) {
-      bvModalEvt.preventDefault()
-      this.handleRemSubmit()
-    },
-    handleRemSubmit: function () {
-      if (!this.checkFormValidity) {
-        return
-      }
-      this.reduceStock()
-    },
     editItem: function () {
       const formData = new FormData()
       formData.append('id', this.item.id)
@@ -113,6 +113,7 @@ export default {
       }).then((response) => {
         this.$store.dispatch('SET_RESPONSE', { error: response.data.error, message: response.data.message })
         this.stockInfluence = 0
+        this.$bvModal.hide('my-modal')
       })
       this.$router.push({ name: 'Loader' })
     },
@@ -132,13 +133,9 @@ export default {
       })
       this.$router.push({ name: 'Loader' })
     },
-    fetchItemSales: function () {
+    fetchItemSales: function (item) {
       this.itemSales.splice(0, this.itemSales.length)
-      var sales = this.$store.getters.ITEM_SALES(this.item.name)
-      for (var i = 0; i < sales.length; i++) {
-        sales[i].time = this.$options.filters.formatDate(sales[i].time)
-      }
-      this.itemSales = sales
+      this.itemSales = this.$store.getters.ITEM_SALES(item.name)
     }
   }
 }

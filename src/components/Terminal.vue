@@ -7,7 +7,6 @@
           <b-tabs pills card vertical active-nav-item-class="font-weight-bold text-uppercase">
             <b-tab v-for="(item, index1) in stock" :key="index1" :title="item.category">
               <b-card no-body class="w-100">
-                <h4>{{item.category}}</h4>
                 <b-tabs card content-class="mt-3" justified>
                   <b-tab v-for="(sub, index2) in item.subcat" :key="index2" :title="sub.subcategory">
                     <b-card-text>
@@ -22,13 +21,13 @@
                               <p>In Stock: {{spec.quantity}}<br>Price: {{spec.price}}</p>
                               <b-button block variant="warning" v-b-toggle="'collapse-buy' + spec.id">Purchase</b-button>
                               <b-collapse :id="'collapse-buy' + spec.id">
-                                <form ref="form">
-                                  <b-form-group label-for="quantity" label="Units to Buy:" :state="Boolean(quantity)" invalid-feedback="Quantityvinput cannot be empty">
+                                <b-form>
+                                  <b-form-group label-for="quantity" label="Units to Buy:" :state="Boolean(quantity)" invalid-feedback="Quantity cannot be empty">
                                     <b-form-input id="quantity" type="number" v-model="quantity" :state="Boolean(quantity)"></b-form-input>
                                     <b-form-text v-show="quantity > spec.quantity">Your order is more than remaining stock quantity</b-form-text>
                                   </b-form-group>
-                                  <b-button @click="handleSubmit" v-if="quantity <= spec.quantity" :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="collapse-buy" variant="success">Add to Cart</b-button>
-                                </form>
+                                  <b-button @click="buyItem(spec.id)" v-if="quantity <= spec.quantity" :class="visible? null : 'collapsed'" :aria-expanded="visible ? 'true' : 'false'" aria-controls="'collapse-buy' + spec.id" variant="success">Add to Cart</b-button>
+                                </b-form>
                               </b-collapse>
                             </b-col>
                           </b-row>
@@ -71,9 +70,6 @@ export default {
     }
   },
   methods: {
-    handleSubmit: function () {
-      this.buyItem()
-    },
     buyItem: function (id) {
       var item = null
       for (var i = 0; i < this.tempStock.length; i++) {
@@ -88,87 +84,84 @@ export default {
     },
     processCart: function () {
       for (var i = 0; i < this.cart.length; i++) {
+        this.sale = this.cart[i]
+        this.sale.salesperson = this.cashier.oName
+        var tempItem = null
         for (var j = 0; j < this.tempStock.length; j++) {
-          if (this.cart[i].item === this.tempStock[j].name) {
-            this.sale = this.cart[i]
-            this.sale.salesperson = this.cashier.oName
-            const formData = new FormData()
-            formData.append('item', this.sale.item)
-            formData.append('quantity', this.sale.quantity)
-            formData.append('salesperson', this.sale.salesperson)
-            formData.append('price', this.sale.total)
-            axios({
-              method: 'post',
-              url: './api/Sales.php?action=create',
-              data: formData,
-              headers: { 'Content-Type': 'multipart/form-data' }
-            }).then((response) => {
-              this.$bvToast.toast(response.data.message, {
-                title: 'Checkout update',
-                autoHideDelay: 1000,
-                toaster: 'b-toaster-top-center',
-                variant: 'primary'
-              })
-              if (!response.data.error) {
-                this.tempStock[j].quantity -= this.sale.quantity
-                this.updateQuantity(this.tempStock[j])
-                this.successSales.items.push(this.sale)
-                this.successSales.total += this.sale.total
-              }
-            })
+          if (this.sale.item === this.tempStock[j].name) {
+            tempItem = this.tempStock[j]
           }
         }
+        tempItem.quantity -= parseFloat(this.sale.quantity)
+        const formData = new FormData()
+        formData.append('item', this.sale.item)
+        formData.append('quantity', this.sale.quantity)
+        formData.append('salesperson', this.sale.salesperson)
+        formData.append('price', this.sale.total)
+        axios({
+          method: 'post',
+          url: './api/Sales.php?action=create',
+          data: formData,
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }).then((response) => {
+          this.$bvToast.toast(response.data.message, {
+            title: 'Sale update',
+            autoHideDelay: 1000,
+            toaster: 'b-toaster-top-center',
+            variant: 'primary'
+          })
+        })
+        const formData2 = new FormData()
+        formData2.append('id', tempItem.id)
+        formData2.append('quantity', tempItem.quantity)
+        axios({
+          method: 'post',
+          url: './api/Stock.php?action=update2',
+          data: formData2,
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }).then((res) => {
+          this.$bvToast.toast(res.data.message, {
+            title: 'Checkout update',
+            autoHideDelay: 1000,
+            toaster: 'b-toaster-top-center',
+            variant: 'primary'
+          })
+        })
+        this.successSales.items.push(this.sale)
+        this.successSales.total += parseFloat(this.sale.total)
       }
-      if (this.processReceipt) {
-        this.cart.splice(0, this.cart.length)
-        this.runningTotal = 0
-        this.successSales.items.splice(0, this.successSales.items.length)
-        this.successSales.total = 0
-        this.$store.dispatch('SET_RESPONSE', { error: false, message: 'Successful Sale' })
-      }
-      this.$router.push({ name: 'Loader' })
-    },
-    updateQuantity: function (item) {
-      const formData = new FormData()
-      formData.append('id', this.item.id)
-      formData.append('quantity', this.item.quantity)
-      axios({
-        method: 'post',
-        url: './api/Stock.php?action=upfate2',
-        data: formData,
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
+      this.$store.dispatch('SET_RESPONSE', { error: false, message: 'Successful Sale' })
+      this.cart.splice(0, this.cart.length)
+      this.runningTotal = 0
+      this.processReceipt()
     },
     processReceipt: function () {
-      var confirmation = false
       const h = this.$createElement
-      const titleVNode = h('b-icon', { props: { icon: 'patch-check' } })
-      const messageVNode = h('div', { class: ['foobar', 'text-center', 'w-100'] }, [
-        h('p', { class: ['text-center'] }, [
-          h('div', { class: ['table-responsive'] }, [
-            h('b-table', {
-              props: {
-                items: this.successSales.items
-              }
-            })
-          ]),
-          h('p', { class: ['float-right', 'mt-0', 'pb-5'] }, [
-            'Total: Ksh.',
-            h('strong', this.successSales.total)
-          ]),
-          h('p', { class: ['mb-0'] }, [
-            'You were served by: ', this.cashier.name
-          ])
+      const titleVNode = h('div', { class: ['text-center', 'w-100', 'centered'] }, [h('b-icon', { props: { icon: 'patch-check' }, class: ['centered'] })])
+      const messageVNode = h('div', { class: ['text-center', 'w-100'] }, [
+        h('p', { class: ['text-center'] }, [h('div', { class: ['table-responsive'] }, [h('b-table', {
+          props: {
+            items: this.successSales.items
+          }
+        })
+        ]),
+        h('p', { class: ['float-right', 'mt-0', 'pb-5'] }, [
+          'Total: Ksh.',
+          h('strong', this.successSales.total)
+        ])
         ])
       ])
-      this.$bvModal.msgBoxOk(messageVNode, {
-        title: titleVNode,
+      this.$bvModal.msgBoxOk([messageVNode], {
+        title: [titleVNode],
         size: 'sm',
         centered: true
       }).then(value => {
-        confirmation = value
+        if (value) {
+          this.successSales.items.splice(0, this.successSales.items.length)
+          this.successSales.total = 0
+          this.$router.push({ name: 'Loader' })
+        }
       })
-      return confirmation
     }
   },
   computed: {
@@ -189,12 +182,8 @@ export default {
     }
   },
   mounted: function () {
-    axios.get('./api/Stock.php?action=read').then((response) => {
-      this.$store.dispatch('SET_STOCK', response.data.stock)
-    })
-    axios.get('./api/Staff.php?action=read').then((response) => {
-      this.$store.dispatch('SET_STAFF', response.data.staff)
-    })
+    console.log(this.stock)
+    console.log(this.staff)
   }
 }
 </script>

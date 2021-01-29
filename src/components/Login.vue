@@ -52,11 +52,18 @@ export default {
         url: './api/Users.php?action=login',
         data: formData
       }).then((response) => {
-        this.$store.dispatch('SET_RESPONSE', { error: response.data.error, message: response.data.message })
-        this.$store.dispatch('SET_USER', response.data.user)
-        this.$nextTick(() => {
+        if (response.data.error === false) {
+          this.$store.dispatch('SET_RESPONSE', { error: response.data.error, message: response.data.message })
+          this.$store.dispatch('SET_USER', response.data.user)
           this.$router.push({ name: 'Loader' })
-        })
+        } else {
+          this.$bvToast.toast([response.data.message], {
+            title: 'Login Error',
+            variant: 'danger',
+            toaster: 'b-toaster-top-center',
+            autoHideDelay: 5000
+          })
+        }
       })
     },
     reset: function (e) {

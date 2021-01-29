@@ -2,7 +2,7 @@
   <b-container fluid>
     <b-row>
       <b-col w-100>
-        <b-spinner variant="primary"></b-spinner>
+        <b-spinner variant="primary" centered></b-spinner>
       </b-col>
     </b-row>
   </b-container>
@@ -34,16 +34,15 @@ export default {
     }
   },
   mounted: function () {
-    if (this.response.message !== '') {
+    if (this.header === 'Success') {
       this.$bvModal.msgBoxOk(this.message, {
-        title: this.header,
         centered: true,
-        variant: 'primary'
+        variant: 'success'
       }).then(value => {
-        this.$nextTick(() => {
-          this.$router.push({ name: 'User' })
-        })
+        this.$router.push({ name: 'User' })
       })
+    } else {
+      this.$router.push({ name: 'Home' })
     }
   }
 }

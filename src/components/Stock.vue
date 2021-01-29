@@ -3,9 +3,9 @@
     <b-tabs vertical card pills>
       <Category v-for="(cat, index) in stock" :key="index" :cat="cat" />
     </b-tabs>
-    <b-button variant="success" v-b-modal.modal-stock-add>Add New Item</b-button>
-    <b-modal ref="modal" @ok="handleOk" id="modal-stock-add" title="Add New Item">
-      <form ref="form" @submit="handleSubmit">
+    <b-button block variant="success" v-b-toggle.collapse-stock-add>Add New Item</b-button>
+    <b-collapse id="collapse-stock-add">
+      <b-form>
         <b-form-group label="Item Name" label-for="name" :state="Boolean(newItem.name)" invalid-feedback="Item Name is required">
           <b-form-input v-model="newItem.name" id="name" :state="Boolean(newItem.name)" required></b-form-input>
         </b-form-group>
@@ -23,16 +23,19 @@
         </b-form-group>
         <b-form-file v-model="itemImage" accept="image
 /*" :state="Boolean(itemImage)" placeholder="Choose a file or drop it here..." drop-placeholder="Drop file here..." invalid-feedback="Image-file is required" required></b-form-file>
-        <p>Selected file: {{ itemImage ? itemImage
-.name : '' }}</p>
-      </form>
-    </b-modal>
+        <p>Selected file: {{ itemImage ? itemImage.name : '' }}</p>
+      </b-form>
+      <div class="text-center mt-3">
+        <b-button variant="secondary" class="mr-3" v-b-toggle.collapse-stock-add>Cancel</b-button>
+        <b-button variant="primary" class="ml-3" @click="addNewItem">Add New Item</b-button>
+      </div>
+    </b-collapse>
   </b-card>
 </template>
 
 <script>
-import axios from 'axios'
 import Category from './Category.vue'
+import axios from 'axios'
 
 export default {
   name: 'Stock',
@@ -42,42 +45,35 @@ export default {
   },
   data: function () {
     return {
-      newItem: {},
-      itemImage: null
+      itemImage: null,
+      newItem: null
     }
   },
   methods: {
-    checkFormValidity: function () {
-      return this.$refs.form.checkValidity()
-    },
-    handleOk: function (bvModalEvt) {
-      bvModalEvt.preventDefault()
-      this.handleSubmit()
-    },
-    handleSubmit: function () {
-      if (!this.checkFormValidity) {
-        return
-      }
-      this.addNewitem()
-    },
     addNewItem: function () {
       const formData = new FormData()
-      formData.append('name', this.newItem.name)
-      formData.append('quantity', this.newItem.quantity)
-      formData.append('price', this.newItem.price)
-      formData.append('category', this.newItem.category)
-      formData.append('subcategory', this.newItem.subcategory)
-      formData.append('img', this.itemImage)
+      formData.append('idNo', this.newStaff.idNo)
+      formData.append('fname', this.newStaff.fName)
+      formData.append('oname', this.newStaff.oName)
+      formData.append('address', this.newStaff.email)
+      formData.append('phone', this.newStaff.phone)
+      formData.append('office', this.newStaff.office)
+      formData.append('status', this.newStaff.status)
+      formData.append('img', this.staffImage)
       axios({
         method: 'post',
-        url: './api/Stock.php?action=create',
-        data: formData
+        url: './api/Staff.php?action=create',
+        data: formData,
+        headers: { 'Content-Type': 'multipart/form-data' }
       }).then((response) => {
         this.$store.dispatch('SET_RESPONSE', { error: response.data.error, message: response.data.message })
         this.newItem = null
       })
       this.$router.push({ name: 'Loader' })
     }
+  },
+  mounted: function () {
+    this.loadStock()
   }
 }
 </script>
