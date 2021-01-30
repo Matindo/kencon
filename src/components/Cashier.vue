@@ -8,8 +8,8 @@
           </b-col>
           <b-col class="w-60">
             <h5>{{member.fName}} {{member.oName}}</h5>
-            <p>Work Status: {{ member.status }}</p>
-            <b-button class="m-1" variant="primary" v-b-modal="'modalEdit' + member.num" @click="setSp(member)">Edit Staff Details</b-button>
+            <p>Work Status: {{ member.status }}</p><b-container fluid><b-row w-100><b-col>
+            <b-button class="m-1" variant="primary" v-b-modal="'modalEdit' + member.num" @click="setSp(member)"><b-icon icon="pencil" aria-hidden="true"></b-icon> Edit Details</b-button>
             <b-modal :id="'modalEdit' + member.num" title="Edit Staff Details" hide-footer>
               <b-form>
                 <b-form-group label="First Name" label-for="1name" invalid-feedback="First Name is required" :state="Boolean(sp.fName)">
@@ -38,16 +38,16 @@
                 <b-button variant="secondary" class="m-1" @click="$bvModal.hide('modalEdit' + member.num)">Cancel</b-button>
                 <b-button variant="primary" @click="editStaff">Edit Details</b-button>
               </div>
-            </b-modal>
-            <b-button class="m-1" variant="danger" @click="deleteStaff(member)">Delete Staff</b-button>
-            <b-button block v-b-toggle="'accordion' + member.idNo" variant="secondary" @click="fetchRecords(member)">View Sales Records</b-button>
+            </b-modal></b-col><b-col>
+            <b-button class="m-1" variant="danger" @click="deleteStaff(member)"><b-icon icon="trash" aria-hidden="true"></b-icon> Delete Staff</b-button></b-col><b-col>
+            <b-button v-b-toggle="'accordion' + member.idNo" variant="secondary" @click="fetchRecords(member)"><b-icon icon="clipboard-data" aria-hidden="true"></b-icon> View Sales</b-button></b-col></b-row></b-container>
           </b-col>
         </b-row>
       </b-container>
     </b-card-header>
     <b-collapse :id="'accordion' + member.idNo">
       <h5>{{ member.oName }}'s Sales</h5>
-      <b-button class="float-right" variant="primary" @click="fetchRecords(member)">Refresh Records</b-button>
+      <b-button class="float-right" variant="primary" @click="fetchRecords(member)"><b-icon icon="arrow-clockwise" aria-hidden="true"></b-icon> Refresh Records</b-button>
       <b-table responsive stripped sticky-header :items="staffSales"></b-table>
     </b-collapse>
   </b-card>
@@ -62,7 +62,14 @@ export default {
   data: function () {
     return {
       staffSales: [],
-      sp: null
+      sp: {
+        num: '-', fName: '-', oName: '-', idNo: '-', email: '-', phone: '-', status: null, office: '-'
+      },
+      statusOptions: [
+        { value: null, text: 'Please select status' },
+        { value: 'On Duty', text: 'On Duty' },
+        { value: 'Off Duty', text: 'Off Duty' }
+      ]
     }
   },
   methods: {

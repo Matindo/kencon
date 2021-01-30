@@ -2,12 +2,12 @@
   <div>
     <Terminal v-if="currentUser.role === 'Cashier'" />
     <Admin v-if="currentUser.role === 'Admin'" />
-    <b-button block variant="danger" @click="exit">Sign Out</b-button>
   </div>
 </template>
 
 <script>
 import axios from 'axios'
+import moment from 'moment'
 import Admin from '@/components/Admin.vue'
 import Terminal from '@/components/Terminal.vue'
 import { mapGetters } from 'vuex'
@@ -46,7 +46,11 @@ export default {
     },
     loadSales: function () {
       axios.get('./api/Sales.php?action=read').then((response) => {
-        this.$store.dispatch('SET_SALES', response.data.sales)
+        var sales = response.data.sales
+        for (var i = 0; i < sales.length; i++) {
+          sales[i].time = moment(sales[i].time).format('MMM Do YYYY h:mm a')
+        }
+        this.$store.dispatch('SET_SALES', sales)
       })
     }
   },

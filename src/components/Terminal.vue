@@ -1,8 +1,8 @@
 <template>
   <b-container fluid>
     <b-row fluid align-v="stretch" align-h="start">
-      <b-col cols="8">
-        <h3 center>Items</h3>
+      <b-col cols="7">
+        <h3 center><b-icon icon="card-list" aria-hidden="true"></b-icon> Items</h3>
         <b-card no-body class="w-100">
           <b-tabs pills card vertical active-nav-item-class="font-weight-bold text-uppercase">
             <b-tab v-for="(item, index1) in stock" :key="index1" :title="item.category">
@@ -19,7 +19,7 @@
                             <b-col class="w-60">
                               <h5>{{spec.name}}</h5>
                               <p>In Stock: {{spec.quantity}}<br>Price: {{spec.price}}</p>
-                              <b-button block variant="warning" v-b-toggle="'collapse-buy' + spec.id">Purchase</b-button>
+                              <b-button block variant="warning" v-b-toggle="'collapse-buy' + spec.id"><b-icon icon="cart-plus" aria-hidden="true"></b-icon> Purchase</b-button>
                               <b-collapse :id="'collapse-buy' + spec.id">
                                 <b-form>
                                   <b-form-group label-for="quantity" label="Units to Buy:" :state="Boolean(quantity)" invalid-feedback="Quantity cannot be empty">
@@ -41,8 +41,8 @@
           </b-tabs>
         </b-card>
       </b-col>
-      <b-col cols="4">
-        <h3 center>Checkout</h3>
+      <b-col cols="5">
+        <h3 centered><b-icon icon="cart3" aria-hidden="true"></b-icon> Checkout</h3>
         <b-table responsive stripped sticky-header :items="cart"></b-table>
         <p center>Total: Ksh. {{ this.runningTotal }}</p>
         <b-button block variant="warning" @click="processCart()">CHECK-OUT</b-button>
@@ -137,7 +137,7 @@ export default {
     },
     processReceipt: function () {
       const h = this.$createElement
-      const titleVNode = h('div', { class: ['text-center', 'w-100', 'centered'] }, [h('b-icon', { props: { icon: 'patch-check' }, class: ['centered'] })])
+      const titleVNode = h('div', { class: ['text-center', 'w-100', 'inline-block', 'text-success'] }, [h('b-icon', { props: { icon: 'cart-check' }, class: ['centered'] }), h('h5', { class: ['text-underline'] }, 'Thank You')])
       const messageVNode = h('div', { class: ['text-center', 'w-100'] }, [
         h('p', { class: ['text-center'] }, [h('div', { class: ['table-responsive'] }, [h('b-table', {
           props: {

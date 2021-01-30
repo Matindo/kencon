@@ -16,7 +16,8 @@
                   </b-card-text>
                 </b-tab>
               </b-tabs>
-              <b-button class="m-3" block variant="success" v-b-modal="modalAddStock">Add New Item</b-button>
+              <b-button class="m-3" block variant="success" @click="$bvModal.show('modalAddStock')"><b-icon icon="plus-square" aria-hidden="true"></b-icon> Add New Item</b-button>
+              <b-button variant="warning" block class="m-2" @click="sellItems"><b-icon icon="cart-fill" aria-hidden="true"></b-icon> Sell Items</b-button>
             </b-card>
           </b-tab>
           <b-tab title="Staff">
@@ -29,7 +30,7 @@
                   </b-card-text>
                 </b-tab>
               </b-tabs>
-              <b-button class="m-3" variant="success" v-b-modal="modalAddStaff">Add Staff Member</b-button>
+              <b-button class="m-3" variant="success" @click="$bvModal.show('modalAddStaff')"><b-icon icon="person-plus" aria-hidden="true"></b-icon> Add Staff Member</b-button>
             </b-card>
           </b-tab>
           <b-tab title="Users">
@@ -38,7 +39,7 @@
                 <b-container fluid>
                   <b-row>
                     <b-col class="w-100 justified">
-                      <b-button class="m-3" variant="success" v-b-modal="modalAddUser">ADD USER</b-button>
+                      <b-button class="m-3" block variant="success" @click="$bvModal.show('modalAddUser')" centered><b-icon icon="person-plus-fill" aria-hidden="true"></b-icon> ADD USER</b-button>
                       <table class="table table-responsive stripped">
                         <thead>
                           <tr>
@@ -63,7 +64,7 @@
                                     <b-form-input id="mail" v-model="currentUser.email" type="email" :state="Boolean(currentUser.email)" required></b-form-input>
                                   </b-form-group>
                                   <b-form-group id="input-group-3" label="Name:" label-for="name" :state="Boolean(currentUser.name)" invalid-feedback="Name is required">
-                                    <b-form-input id="name" v-model="name" :state="Boolean(currentUser.name)" required></b-form-input>
+                                    <b-form-input id="name" v-model="currentUser.name" :state="Boolean(currentUser.name)" required></b-form-input>
                                   </b-form-group>
                                   <b-form-group id="input-group-4" label="Role:" label-for="role" :state="Boolean(currentUser.role)" invalid-feedback="Role is required">
                                     <b-form-select id="role" v-model="currentUser.role" :options="options" :state="Boolean(currentUser.role)" required></b-form-select>
@@ -140,15 +141,12 @@ uired">
         </b-form-group>
         <b-form-group label-for="subCat" label="Sub-category" :state="Boolean(newItem.subcategory)" invalid-feedback="Subcategory is required">
           <b-form-input v-model="newItem.subcategory" id="subCat" :state="Boolean(newItem.subcategory)" required></b-form-input>        </b-form-group>
-        <b-form-group label="Image" :state="Boolean(itemImage)" label-for="imgr">
-          <b-form-file id="imgr" v-model="itemImage" accept="image/*" :state="Boolean(itemImage)" placeholder="Choose a file or drop it here..." drop-placeholder="Drop file here..." invalid-feedback="Image-file is required" required></b-form-file>
-          <b-form-text>Selected file: {{ itemImage ? itemImage.name : '' }}</b-form-text>
-        </b-form-group>
+        <b-form-file v-model="itemImage" accept="image/*" :state="Boolean(itemImage)" placeholder="Choose a file or drop it here..." drop-placeholder="Drop file here..." required></b-form-file>
+        <b-form-text>Selected file: {{ itemImage ? itemImage.name : '' }}</b-form-text>
       </b-form>
       <div class="text-center mt-3">
-        <b-button variant="secondary" class="mr-3" @click="$bvModal.hide('modalAddStock')">Cancel</b-button>
-        <b-button variant="primary" class="ml-3" @click="addNewI
-tem">Add Item</b-button>
+        <b-button variant="secondary" class="m-3" @click="$bvModal.hide('modalAddStock')">Cancel</b-button>
+        <b-button variant="primary" class="m-3" @click="addItem">Add Item</b-button>
       </div>
     </b-modal>
     <b-modal id="modalAddUser" title="Add New User" hide-footer>
@@ -167,8 +165,8 @@ tem">Add Item</b-button>
         </b-form-group>
       </b-form>
       <div class="text-center mt-3">
-        <b-button variant="secondary" class="mr-3" @click="$bvModal.hide('modalAddUser')">Cancel</b-button>
-        <b-button variant="primary" class="ml-3" @click="addUser">Add User</b-button>
+        <b-button variant="secondary" class="m-3" @click="$bvModal.hide('modalAddUser')">Cancel</b-button>
+        <b-button variant="primary" class="m-3" @click="addUser">Add User</b-button>
       </div>
     </b-modal>
   </div>
@@ -193,13 +191,16 @@ export default {
   data: function () {
     return {
       salesperson: {
-        fName: '', oName: '', idNo: '', email: '', phone: '', status: '', office: ''
+        fName: 'Jon', oName: 'Doe', idNo: '12345678', email: 'example@mail.com', phone: '0100123456', status: null, office: 'Main'
       },
       newItem: {
-        name: '', quantity: 0, price: 0, category: '', subcategory: ''
+        name: 'Item name', quantity: 1, price: 1, category: 'category', subcategory: 'subcategory'
       },
       newUser: {
-        email: '', pword: '', name: '', role: ''
+        email: 'email', pword: 'password', name: 'name', role: null
+      },
+      currentUser: {
+        email: '-', name: '-', role: '-', id: '-'
       },
       options: [
         { value: null, text: 'Select the user\'s role' },
@@ -210,9 +211,8 @@ export default {
         { value: 'On Duty', text: 'On Duty' },
         { value: 'Off Duty', text: 'Off Duty' }
       ],
-      staffImage: null,
-      itemImage: null,
-      currentUser: null
+      staffImage: 'image.png',
+      itemImage: 'image.png'
     }
   },
   methods: {
@@ -236,11 +236,10 @@ export default {
         headers: { 'Content-Type': 'multipart/form-data' }
       }).then((response) => {
         this.$store.dispatch('SET_RESPONSE', { error: response.data.error, message: response.data.message })
-        this.salesperson = null
       })
       this.$router.push({ name: 'Loader' })
     },
-    addNewItem: function () {
+    addItem: function () {
       const formData = new FormData()
       formData.append('name', this.newItem.name)
       formData.append('quantity', this.newItem.quantity)
@@ -255,7 +254,6 @@ export default {
         headers: { 'Content-Type': 'multipart/form-data' }
       }).then((response) => {
         this.$store.dispatch('SET_RESPONSE', { error: response.data.error, message: response.data.message })
-        this.newItem = null
       })
       this.$router.push({ name: 'Loader' })
     },
@@ -272,7 +270,21 @@ export default {
         headers: { 'Content-Type': 'multipart/form-data' }
       }).then((response) => {
         this.$store.dispatch('SET_RESPONSE', { error: response.data.error, message: response.data.message })
-        this.newUser = {}
+      })
+      this.$router.push({ name: 'Loader' })
+    },
+    editUser: function () {
+      const formData = new FormData()
+      formData.append('id', this.currentUser.id)
+      formData.append('name', this.currentUser.name)
+      formData.append('email', this.currentUser.email)
+      formData.append('role', this.currentUser.role)
+      axios({
+        method: 'post',
+        url: './api/Users.php?action=update',
+        data: formData
+      }).then((response) => {
+        this.$store.dispatch('SET_RESPONSE', { error: response.data.error, message: response.data.message })
       })
       this.$router.push({ name: 'Loader' })
     },
@@ -300,6 +312,9 @@ export default {
           this.$router.push({ name: 'Loader' })
         }
       })
+    },
+    sellItems: function () {
+      this.$router.push({ name: 'Trader' })
     }
   }
 }

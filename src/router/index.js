@@ -37,7 +37,8 @@ const routes = [
     path: '/404',
     name: '404',
     component: () => import('../views/NotFound.vue')
-  }
+  },
+  { path: '/trader', name: 'Trader', component: () => import('../views/Trader.vue') }
 ]
 
 const router = new VueRouter({
